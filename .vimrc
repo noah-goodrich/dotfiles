@@ -12,13 +12,10 @@ Bundle 'gmarik/vundle'
 
 " My bundles from github
 " weird hack to get around it being my repo and asking for username pass on
-" https
-Bundle 'git://github.com/jergason/sniptmate.vim.git'
 Bundle 'scrooloose/nerdtree'
 Bundle 'scrooloose/nerdcommenter'
-Bundle 'altercation/vim-colors-solarized.git'
 Bundle 'tpope/vim-surround'
-Bundle 'tpope/vim-markdown'
+Bundle 'hallison/vim-markdown'
 Bundle 'pangloss/vim-javascript'
 Bundle 'mileszs/ack.vim'
 Bundle 'ervandew/supertab'
@@ -30,13 +27,15 @@ Bundle 'noahfrederick/Hemisu'
 Bundle 'tpope/vim-fugitive'
 Bundle 'nono/vim-handlebars'
 Bundle 'tpope/vim-obsession'
-Bundle "flipgthb / misc"
+Bundle 'joonty/myvim'
+" Bundle "StanAngeloff/php.vim"
+
+" per instructions for markdown
+let g:vim_markdown_folding_disabled=1
 
 " vim-scripts repos don't need username
 Bundle 'nginx.vim'
 Bundle 'bclear'
-Bundle 'summerfruit256.vim'
-
 
 filetype plugin indent on       " load file type plugins + indentation
 set showcmd                     " display incomplete commands
@@ -45,14 +44,12 @@ set showcmd                     " display incomplete commands
 set clipboard=unnamed
 " Color stuff
 set background=dark
-"let g:solarized_termcolors=256
-silent! colorscheme darkgit
 
 " Gutter
 set number
 set cursorline
 
-" Show a vertical line at 80 characters
+" Show a vertical line at 120 characters
 if exists('+colorcolumn')
   set cc=120
 else
