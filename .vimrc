@@ -1,4 +1,4 @@
-let &viewdir=expand("$HOME") . "/.bk/.vim/viewdir"
+let &viewdir=expand("$HOME") . "/.vim/views"
 if !isdirectory(expand(&viewdir))|call mkdir(expand(&viewdir), "p", 451)|endif
 
 set nocompatible
