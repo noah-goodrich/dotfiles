@@ -1,0 +1,20 @@
+[user]
+	name = Noah Goodrich
+    email = me@noahgoodrich.com
+[github]
+        user = noah-goodrich
+[alias]
+    pl = pull
+    f = fetch --prune
+    ps = push
+    co = checkout
+    ci = commit
+    st = status
+    br = branch
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --
+[color]
+        diff = auto
+        status = auto
+        branch = auto
+[core]
+        editor = vim
