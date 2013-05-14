@@ -1,3 +1,6 @@
+let &viewdir=expand("$HOME") . "/.bk/.vim/viewdir"
+if !isdirectory(expand(&viewdir))|call mkdir(expand(&viewdir), "p", 451)|endif
+
 set nocompatible
 syntax enable
 set encoding=utf-8
@@ -28,7 +31,6 @@ Bundle 'tpope/vim-fugitive'
 Bundle 'nono/vim-handlebars'
 Bundle 'tpope/vim-obsession'
 Bundle 'joonty/myvim'
-" Bundle "StanAngeloff/php.vim"
 
 " per instructions for markdown
 let g:vim_markdown_folding_disabled=1
@@ -168,3 +170,6 @@ au BufRead,BufNewFile {Gemfile,Rakefile,Vagrantfile,config.ru,*.gemspec} set ft=
 au BufRead,BufNewFile *.java set ft=java
 
 au BufRead,BufNewFile *.php set ft=php
+
+autocmd BufWrite * mkview
+autocmd BufNewFile,BufRead * silent loadview
