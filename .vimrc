@@ -92,9 +92,10 @@ set incsearch                   " incremental searching
 set smartcase                   " ... unless they contain at least one capital letter
 
 " Store swapfiles and backup files in .vim/tmp
-set dir=~/.vim/tmp
-set backupdir=~/.vim/tmp
-
+silent execute '!mkdir -p "'.$HOME.'/.vim/tmp"'
+"silent execute '!rm "'.$HOME.'/.vim/tmp/*"'
+set backupdir=$HOME/.vim/tmp//
+set directory=$HOME/.vim/tmp//
 
 " statusline
 " see :help statusline for more info on these options
@@ -184,3 +185,14 @@ au BufRead,BufNewFile *.php set ft=php
 
 autocmd BufWrite * mkview
 autocmd BufNewFile,BufRead * silent loadview
+
+" Automatic Code Folding
+set foldmethod=syntax
+set foldlevelstart=1
+
+let javaScript_fold=1         " JavaScript
+let perl_fold=1               " Perl
+let php_folding=1             " PHP
+let sh_fold_enabled=1         " sh
+let vimsyn_folding='af'       " Vim script
+let xml_syntax_folding=1      " XML
