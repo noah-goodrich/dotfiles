@@ -36,6 +36,8 @@ Bundle 'tpope/vim-fugitive'
 Bundle 'nono/vim-handlebars'
 Bundle 'tpope/vim-obsession'
 Bundle 'joonty/myvim'
+Bundle 'shawncplus/phpcomplete.vim'
+Bundle 'flazz/vim-colorschemes'
 
 if iCanHazVundle == 0
     echo "Installing Bundles, please ignore key map error messages"
@@ -169,6 +171,8 @@ let g:ctrlp_custom_ignore = {
 
 au FileType python set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=0
 au FileType go set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=0
+au Filetype javascript set expandtab tabstop=2 shiftwidth=2 softtabstop=2
+
 " Automatically call gofmt on golang files when saving as per
 " http://stackoverflow.com/questions/10969366/vim-automatically-formatting-golang-source-code-when-saving
 au FileType go au BufWritePre <buffer> Fmt
@@ -183,8 +187,8 @@ au BufRead,BufNewFile *.java set ft=java
 
 au BufRead,BufNewFile *.php set ft=php
 
-autocmd BufWrite * mkview
-autocmd BufNewFile,BufRead * silent loadview
+au BufWrite * mkview
+au BufNewFile,BufRead * silent loadview
 
 " Automatic Code Folding
 set foldmethod=syntax
