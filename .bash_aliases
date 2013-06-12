@@ -5,3 +5,7 @@ alias gps="git ps"
 alias gco="git co"
 alias gci="git ci"
 alias gst="git st"
+
+alias gb="grunt build"
+alias gs="grunt server"
+alias g="grunt"
