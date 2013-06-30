@@ -172,6 +172,7 @@ let g:ctrlp_custom_ignore = {
 au FileType python setlocal softtabstop=4 tabstop=4 shiftwidth=4 textwidth=0
 au FileType go setlocal softtabstop=4 tabstop=4 shiftwidth=4 textwidth=0
 au Filetype javascript setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
+au FileType php setlocal expandtab tabstop=4 shiftwidth=4 softtabstop=4
 
 " Automatically call gofmt on golang files when saving as per
 " http://stackoverflow.com/questions/10969366/vim-automatically-formatting-golang-source-code-when-saving
