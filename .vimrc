@@ -26,18 +26,18 @@ Bundle 'tpope/vim-surround'
 Bundle 'hallison/vim-markdown'
 Bundle 'pangloss/vim-javascript'
 Bundle 'mileszs/ack.vim'
-Bundle 'ervandew/supertab'
-Bundle 'kchmck/vim-coffee-script'
-Bundle 'kien/ctrlp.vim'
-Bundle 'tomasr/molokai'
-Bundle 'wavded/vim-stylus'
-Bundle 'noahfrederick/Hemisu'
+"Bundle 'kien/ctrlp.vim'
 Bundle 'tpope/vim-fugitive'
-Bundle 'nono/vim-handlebars'
 Bundle 'tpope/vim-obsession'
-Bundle 'joonty/myvim'
+Bundle 'scrooloose/syntastic'
 Bundle 'shawncplus/phpcomplete.vim'
 Bundle 'flazz/vim-colorschemes'
+Bundle 'altercation/vim-colors-solarized'
+
+" vim-scripts repos don't need username
+Bundle 'ScrollColors'
+Bundle 'nginx.vim'
+Bundle 'bclear'
 
 if iCanHazVundle == 0
     echo "Installing Bundles, please ignore key map error messages"
@@ -48,15 +48,12 @@ endif
 " per instructions for markdown
 let g:vim_markdown_folding_disabled=1
 
-" vim-scripts repos don't need username
-Bundle 'nginx.vim'
-Bundle 'bclear'
-
 filetype plugin indent on       " load file type plugins + indentation
 set showcmd                     " display incomplete commands
 
 " make copy paste work with tmux
 set clipboard=unnamed
+
 " Color stuff
 set background=dark
 
@@ -146,17 +143,9 @@ nnoremap <leader>w :%s/\s\+$//e<CR>
 " highlighted anymore. From Gary Bernhardt of Destroy All Software
 nnoremap <CR> :nohlsearch<cr>
 
-" CoffeeScript compilation
-" Compile a highlighted section of code
-vmap <leader>c <esc>:'<,'>:CoffeeCompile<CR>
-" Compile the entire file if nothing is highlighted
-map <leader>c :CoffeeCompile<CR>
-
-" compile the whole coffeescript file and jump to a line
-" useful for debugging stack traces
-" Run with :C [line_number]
-command -nargs=1 C CoffeeCompile | :<args>
-
+" ScrollColors Mappings
+map <silent><F3> :NEXTCOLOR<cr>
+map <silent><F2> :PREVCOLOR<cr>
 
 " Plugin Setup
 " ********************
