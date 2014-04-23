@@ -7,5 +7,6 @@ alias gci="git ci"
 alias gst="git st"
 
 alias gb="grunt build"
+alias gw="grunt watch"
 alias gs="grunt server"
 alias g="grunt"
