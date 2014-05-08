@@ -1,4 +1,6 @@
 alias l="ls -lah --color=auto"
+alias c="clear"
+
 alias gsu="git submodule update --recursive --init"
 alias gpl="git pl"
 alias gps="git ps"
