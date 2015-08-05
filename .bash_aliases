@@ -1,4 +1,4 @@
-alias l="ls -Glah
+alias l="ls -Glah"
 alias c="clear"
 
 alias gsu="git submodule update --recursive --init"

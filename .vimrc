@@ -38,6 +38,7 @@ Bundle 'altercation/vim-colors-solarized'
 Bundle 'ScrollColors'
 Bundle 'nginx.vim'
 Bundle 'bclear'
+Bundle 'vim-scripts/SQLComplete.vim'
 
 if iCanHazVundle == 0
     echo "Installing Bundles, please ignore key map error messages"
