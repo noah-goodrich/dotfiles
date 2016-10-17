@@ -33,6 +33,8 @@ Bundle 'scrooloose/syntastic'
 Bundle 'shawncplus/phpcomplete.vim'
 Bundle 'flazz/vim-colorschemes'
 Bundle 'altercation/vim-colors-solarized'
+Plugin 'NLKNguyen/pipe.vim' "required
+Plugin 'NLKNguyen/pipe-mysql.vim'
 
 " vim-scripts repos don't need username
 Bundle 'ScrollColors'
@@ -111,6 +113,8 @@ set statusline+=%{StatusLineFileSize()} " number of bytes or K in file
 set statusline+=%l/%L " current line / total lines
 set statusline+=\ %P " percentage through file
 
+set viminfo='100,f1
+
 function! StatusLineFileSize()
   let size = getfsize(expand('%%:p'))
   if (size < 1024)
@@ -144,6 +148,9 @@ nnoremap <leader>w :%s/\s\+$//e<CR>
 " highlighted anymore. From Gary Bernhardt of Destroy All Software
 nnoremap <CR> :nohlsearch<cr>
 
+" semicolon is useless but SHIFT+; is annoying to do all the time
+noremap ; :
+
 " ScrollColors Mappings
 map <silent><F3> :NEXTCOLOR<cr>
 map <silent><F2> :PREVCOLOR<cr>
@@ -163,6 +170,7 @@ au FileType python setlocal softtabstop=4 tabstop=4 shiftwidth=4 textwidth=0
 au FileType go setlocal softtabstop=4 tabstop=4 shiftwidth=4 textwidth=0
 au Filetype javascript setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
 au FileType php setlocal tabstop=4 shiftwidth=4 softtabstop=4
+au FileType mysql setlocal tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker foldmarker=##-#,#-##
 
 " Automatically call gofmt on golang files when saving as per
 " http://stackoverflow.com/questions/10969366/vim-automatically-formatting-golang-source-code-when-saving
@@ -178,6 +186,8 @@ au BufRead,BufNewFile *.java set ft=java
 
 au BufRead,BufNewFile *.php set ft=php
 
+au BufRead,BufNewFile *.sql set ft=mysql
+
 au BufWrite * mkview
 au BufNewFile,BufRead * silent loadview
 
@@ -191,3 +201,21 @@ let php_folding=1             " PHP
 let sh_fold_enabled=1         " sh
 let vimsyn_folding='af'       " Vim script
 let xml_syntax_folding=1      " XML
+
+" mysql-pipe config setup
+let g:pipemysql_login_info = [
+            \ {
+            \                    'description' : 'vagrant',
+            \                    'mysql_hostname' : 'local.lendio.com',
+            \                    'mysql_username' : 'lendio',
+            \                    'mysql_password' : 'L3nd10',
+            \                   'mysql_database' : 'optimus'
+            \ },
+            \ {
+            \   'description' : 'bi1',
+            \   'ssh_address' : 'noah@bi1-lendio.net',
+            \   'mysql_hostname' : '127.0.0.1',
+            \   'mysql_username' : 'yoda',
+            \   'mysql_password' : 'J3diM4st3r!'
+            \ }
+            \ ]"
