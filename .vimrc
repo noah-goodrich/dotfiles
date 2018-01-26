@@ -62,6 +62,7 @@ set background=dark
 
 " Gutter
 set number
+set relativenumber
 set cursorline
 
 " Show a vertical line at 120 characters
@@ -131,6 +132,9 @@ let mapleader="," " use , for leader instead of backslash
 inoremap jj <esc>
 " use leader leader to jump to the previously edited file
 nnoremap <leader><leader> <C-^>
+
+" use leader w to enter window mode
+noremap <space> <C-w>
 
 " jump back and forth between previous panes
 nnoremap <leader>p <C-W><C-P>
