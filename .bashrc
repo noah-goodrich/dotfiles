@@ -148,10 +148,3 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
-
-### Added by the Heroku Toolbelt
-export PATH="/usr/local/heroku/bin:$PATH"
-
-source /Users/noah/.profile  # Chef-.profile-Lendio
-[[ -s "$HOME/.avn/bin/avn.sh" ]] && source "$HOME/.avn/bin/avn.sh" # load avn
-export PATH=$PATH:/Applications/MySQLWorkbench.app/Contents/MacOS
