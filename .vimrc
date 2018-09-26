@@ -35,6 +35,7 @@ Bundle 'flazz/vim-colorschemes'
 Bundle 'altercation/vim-colors-solarized'
 Plugin 'NLKNguyen/pipe.vim' "required
 Plugin 'NLKNguyen/pipe-mysql.vim'
+Plugin 'elixir-editors/vim-elixir'
 
 " vim-scripts repos don't need username
 Bundle 'ScrollColors'
@@ -209,17 +210,17 @@ let xml_syntax_folding=1      " XML
 " mysql-pipe config setup
 let g:pipemysql_login_info = [
             \ {
-            \                    'description' : 'vagrant',
-            \                    'mysql_hostname' : 'local.lendio.com',
-            \                    'mysql_username' : 'lendio',
-            \                    'mysql_password' : 'L3nd10',
-            \                   'mysql_database' : 'optimus'
+            \                    'description' : 'local',
+            \                    'mysql_hostname' : '0.0.0.0',
+            \                    'mysql_username' : 'root',
+            \                    'mysql_password' : '',
+            \                   'mysql_database' : 'bluesun'
             \ },
             \ {
             \   'description' : 'bi1',
             \   'ssh_address' : 'noah@bi1-lendio.net',
             \   'mysql_hostname' : '127.0.0.1',
-            \   'mysql_username' : 'yoda',
-            \   'mysql_password' : 'J3diM4st3r!'
+            \   'mysql_username' : '',
+            \   'mysql_password' : '!'
             \ }
             \ ]"

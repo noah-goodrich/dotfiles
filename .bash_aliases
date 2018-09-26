@@ -7,11 +7,8 @@ alias gco="git co"
 alias gci="git ci"
 alias gst="git st"
 
-#alias bx="bundle exec"
-#alias xrails="bundle exec rails"
-
-#alias retl="/home/gmoney/dev/etl/bin/util/build_and_run.sh"
+alias sxt="ssh -N -L 192.168.0.34:1433:exigo-usw2-mssql-e-0.ckt27h4brzc8.us-west-2.rds.amazonaws.com:1433 gt"
 
 # Docker aliases
-alias dc="cd ~/dev; docker-compose"
+alias dc="export USER_ID=$(id -u); export GROUP_ID=$(id -g); docker-compose -f ~/dev/docker-compose.yml"
 alias dips="docker ps -q | xargs -n 1 docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{ .Name }}' | sed 's/ \// /'"
