@@ -171,7 +171,7 @@ let g:ctrlp_custom_ignore = {
   \ }
 
 
-au FileType python setlocal softtabstop=4 tabstop=4 shiftwidth=4 textwidth=0
+au FileType python setlocal softtabstop=4 tabstop=4 shiftwidth=4 textwidth=0 foldmethod=indent
 au FileType go setlocal softtabstop=4 tabstop=4 shiftwidth=4 textwidth=0
 au Filetype javascript setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
 au FileType php setlocal tabstop=4 shiftwidth=4 softtabstop=4

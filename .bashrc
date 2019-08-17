@@ -148,3 +148,7 @@ if ! shopt -oq posix; then
         . /etc/bash_completion
     fi
 fi
+
+# MacPorts Installer addition on 2019-08-09_at_10:58:48: adding an appropriate PATH variable for use with MacPorts.
+export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
+# Finished adapting your PATH environment variable for use with MacPorts.
