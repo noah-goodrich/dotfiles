@@ -148,3 +148,14 @@ if ! shopt -oq posix; then
         . /etc/bash_completion
     fi
 fi
+
+
+kube-env() {
+  local env=$1
+  [ ! $env ] && {
+    echo "$0 {env: d1, p1, etc}";
+    return 1
+  }
+  export KUBECONFIG=~/.kube/ice-eks-$env.yml
+  export AWS_PROFILE=icentris-$env
+}
