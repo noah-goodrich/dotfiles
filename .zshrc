@@ -8,12 +8,36 @@ alias gco="git checkout"
 alias gci="git commit"
 alias gst="git status"
 
-alias sxt="ssh -N -L 192.168.0.34:1433:exigo-usw2-mssql-e-0.ckt27h4brzc8.us-west-2.rds.amazonaws.com:1433 gt"
+alias code="/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code -r"
+
+alias pip="pip3"
+alias python="python3"
 
 # Docker aliases
 alias dc="docker-compose"
 alias dips="docker ps -q | xargs -n 1 docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} {{ .Name }}' | sed 's/ \// /'"
 
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+
+# append to the history file, don't overwrite it
+# shopt -s histappend
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=1000
+HISTFILESIZE=2000
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+# shopt -s checkwinsize
+
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
+
+# make less more friendly for non-text input files, see lesspipe(1)
+# [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 PROMPT='%(?.%F{green}√.%F{red}?%?)%f %B%F{240}%1~%f%b %# '
 
