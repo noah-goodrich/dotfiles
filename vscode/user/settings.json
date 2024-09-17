@@ -1,0 +1,58 @@
+{
+   "snowflake.connectionsConfigFile": "/Users/noahg/.snowflake/connections.toml",
+   "yaml.schemas": {
+      "file:///Users/noahg/.vscode/extensions/atlassian.atlascode-3.0.10/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml"
+   },
+   "atlascode.jira.jqlList": [
+      {
+         "id": "0bd14cde-251e-4347-84f4-bde04c1e2f25",
+         "enabled": true,
+         "name": "My limble Issues",
+         "query": "assignee = currentUser() AND resolution = Unresolved ORDER BY lastViewed DESC",
+         "siteId": "362fe0d7-eebb-482c-8c5a-c91f3fb0acad",
+         "monitor": true
+      }
+   ],
+   "atlascode.jira.enabled": true,
+   "atlascode.bitbucket.enabled": false,
+   "window.newWindowProfile": "Default",
+   "editor.fontFamily": "Inconsolata, Menlo, Monaco, 'Courier New', monospace",
+   "editor.fontSize": 16,
+   "editor.formatOnPaste": true,
+   "editor.formatOnSave": true,
+   "workbench.colorCustomizations": {
+      "terminal.background": "#00000000"
+   },
+   "workbench.settings.applyToAllProfiles": [
+      "workbench.colorCustomizations"
+   ],
+   "window.titleBarStyle": "custom",
+   "workbench.colorTheme": "Default Dark+",
+   "vscode_vibrancy.enableAutoTheme": true,
+   "vscode_vibrancy.opacity": 1,
+   "vscode_vibrancy.imports": [
+      "/path/to/file"
+   ],
+   "background.customImages": [
+      "file:///Users/noahg/Pictures/wallpapers/noahsWife2.jpg"
+   ],
+   "background.useFront": true,
+   "background.windowBackgrounds": [
+      "/Users/noahg/Pictures/wallpapers/noahsWife2.jpg"
+   ],
+   "background.backgroundBlur": [
+      "0.9",
+      "0",
+      "0",
+      "0"
+   ],
+   "background.backgroundOpacity": [
+      0.19,
+      0.1,
+      0.1,
+      0.1
+   ],
+   "vim.leader": ",",
+   "vim.changeWordIncludesWhitespace": true,
+   "vim.foldfix": true
+}
