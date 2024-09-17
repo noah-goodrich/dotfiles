@@ -1,0 +1,52 @@
+{
+    "editor.fontSize": 12,
+    "terminal.integrated.fontSize": 12,
+    "git.autofetch": true,
+    "explorer.confirmDelete": false,
+    "git.confirmSync": false,
+    "workbench.startupEditor": "none",
+    "[python]": {
+        "editor.formatOnType": true
+    },
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "window.zoomLevel": 1,
+    "vim.leader": ",",
+    "vim.normalModeKeyBindings": [{
+    "before": ["leader", "e"],
+    "commands": ["workbench.view.explorer"]
+}, {
+    "before": ["leader", "w"],
+    "commands": [
+        "workbench.action.files.save",
+    ]
+}, {
+    "before": ["leader", "t"],
+    "commands": ["workbench.action.terminal.toggleTerminal"]
+}, {
+    "before": ["leader", "e"],
+    "commands": ["workbench.action.focusActiveEditorGroup"]
+}, {
+    "before": ["leader", "b"],
+    "commands": ["workbench.action.toggleSidebarVisibility"]
+}],
+"vim.normalModeKeyBindingsNonRecursive": [{
+        "before": [":"],
+        "after": ["<Shift>", ":"]
+}, 
+
+],
+"vim.insertModeKeyBindings": [{
+    "before": ["j", "j"],
+    "after": ["<Escape>"]
+}
+],
+"snowflake.enablePublicPreviewFeatures": true,
+"snowflake.snowsqlConfigPath": "~/.snowsql/config",
+"python.venvFolders": [
+    "dev/**/.venv"
+],
+"vim.vimrc.enable": true,
+"vim.useSystemClipboard": true,
+"vim.visualModeKeyBindingsNonRecursive": [],
+"vim.foldfix": true    
+}
