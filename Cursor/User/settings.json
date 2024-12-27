@@ -1,0 +1,106 @@
+{
+  "snowflake.connectionsConfigFile": "",
+  "yaml.schemas": {
+    "file:///Users/noahg/.cursor/extensions/atlassian.atlascode-3.2.1/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml"
+  },
+  "atlascode.jira.jqlList": [
+    {
+      "id": "0bd14cde-251e-4347-84f4-bde04c1e2f25",
+      "enabled": true,
+      "name": "My limble Issues",
+      "query": "assignee = currentUser() AND resolution = Unresolved ORDER BY lastViewed DESC",
+      "siteId": "362fe0d7-eebb-482c-8c5a-c91f3fb0acad",
+      "monitor": true
+    }
+  ],
+  "atlascode.jira.enabled": true,
+  "atlascode.bitbucket.enabled": false,
+  "window.newWindowProfile": "Default",
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.fontSize": 16,
+  "editor.fontFamily": "Inconsolata, Menlo, Monaco, 'Courier New', monospace",
+  "editor.fontSize": 18,
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "workbench.editor.enablePreview": false,
+  "workbench.colorCustomizations": {
+    "terminal.background": "#00000000"
+  },
+  "workbench.settings.applyToAllProfiles": ["workbench.colorCustomizations"],
+  "window.titleBarStyle": "custom",
+  "vscode_vibrancy.enableAutoTheme": true,
+  "vscode_vibrancy.opacity": 1,
+  "vscode_vibrancy.imports": ["/path/to/file"],
+  "background.customImages": [
+    "file:///Users/noahg/Pictures/wallpapers/noahsWife2.jpg"
+  ],
+  "background.useFront": true,
+  "background.windowBackgrounds": [
+    "/Users/noahg/Pictures/wallpapers/strawberry-09-24.jpg"
+  ],
+  "background.backgroundBlur": ["0.9", "0", "0", "0"],
+  "background.backgroundOpacity": [0.3, 0.1, 0.1, 0.1],
+  "vim.leader": ",",
+  "vim.normalModeKeyBindings": [
+    {
+      "before": ["leader", "w"],
+      "commands": ["workbench.action.files.save"]
+    },
+    {
+      "before": ["leader", "t"],
+      "commands": ["workbench.action.terminal.toggleTerminal"]
+    },
+    {
+      "before": ["leader", "e"],
+      "commands": ["workbench.action.focusActiveEditorGroup"]
+    },
+    {
+      "before": ["leader", "f"],
+      "commands": ["workbench.view.explorer"]
+    }
+  ],
+  "vim.normalModeKeyBindingsNonRecursive": [
+    {
+      "before": [":"],
+      "after": ["<Shift>", ":"]
+    }
+  ],
+  "vim.insertModeKeyBindings": [
+    {
+      "before": ["j", "j"],
+      "after": ["<Escape>"]
+    }
+  ],
+  "snowflake.enablePublicPreviewFeatures": true,
+  "snowflake.snowsqlConfigPath": "~/.snowsql/config",
+  "python.venvFolders": ["dev/**/.venv"],
+  "vim.vimrc.enable": true,
+  "vim.useSystemClipboard": true,
+  "vim.visualModeKeyBindingsNonRecursive": [],
+  "vim.changeWordIncludesWhitespace": true,
+  "vim.foldfix": true,
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "database-client.splitSQLByNewLine": false,
+  "database-client.highlightSQLBlock": true,
+  "database-client.capitalizeKeywordsWhenFormatting": true,
+  "diffEditor.renderSideBySide": false,
+  "Prettier-SQL.insertSpacesOverride": false,
+  "Prettier-SQL.commaPosition": "before",
+  "Prettier-SQL.keywordCase": "upper",
+  "sqltools.results.reuseTabs": "connection",
+  "background.autoInstall": true,
+  "background.renderContentAboveBackground": true,
+  "explorer.confirmDragAndDrop": false,
+  "debug.console.fontSize": 18,
+  "chat.editor.fontSize": 18,
+  "markdown.preview.fontSize": 18,
+  "window.zoomLevel": 2,
+  "git.openRepositoryInParentFolders": "always",
+  "background.settingScope": "Global",
+  "git.autofetch": true,
+  "cursor.composer.collapsePaneInputBoxPills": true,
+  "cursor.chat.collapseInputBoxPills": true,
+  "remote.autoForwardPortsSource": "hybrid"
+}

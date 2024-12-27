@@ -1,0 +1,24 @@
+// Place your key bindings in this file to override the defaults
+[
+  {
+    "command": "runCommands",
+    "key": ", f",
+    "args": {
+      "commands": [
+        "workbench.action.focusActiveEditorGroup",
+        "workbench.action.toggleSidebarVisibility"
+      ]
+    },
+    "when": "filesExplorerFocus"
+  },
+  {
+    "key": ", t",
+    "command": "workbench.action.terminal.toggleTerminal",
+    "when": "terminalFocus"
+  },
+  {
+    "key": ", e",
+    "command": "workbench.action.focusActiveEditorGroup",
+    "when": "!editorTextFocus"
+  }
+]
