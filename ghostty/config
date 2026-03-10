@@ -1,0 +1,12 @@
+# --- Fullscreen + Transparency (non-native to allow opacity) ---
+macos-non-native-fullscreen = true
+fullscreen = true
+background-opacity = 0.7
+background-blur-radius = 20
+
+# --- Font ---
+font-family = JetBrainsMono Nerd Font
+font-size = 20
+
+# --- Theme ---
+theme = Catppuccin Mocha
