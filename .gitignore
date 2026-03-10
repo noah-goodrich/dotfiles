@@ -2,3 +2,6 @@
 *.swp
 *.swo
 *~
+
+# Built plugin artifacts
+claude/dist/

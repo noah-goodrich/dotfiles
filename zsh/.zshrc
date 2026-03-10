@@ -66,6 +66,9 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share"
 
+# SSH agent — use macOS native keychain agent (prevents Docker from hijacking it)
+export SSH_AUTH_SOCK=$(launchctl getenv SSH_AUTH_SOCK)
+
 # PATH additions
 export PATH="/opt/homebrew/bin:$PATH"      # Homebrew (macOS)
 export PATH="$HOME/.local/bin:$PATH"
@@ -121,5 +124,5 @@ alias tn="tmux new -s"
 # =============================================================================
 # POWERLEVEL10K CONFIG
 # =============================================================================
-# Run `p10k configure` to regenerate this
-[[ -f "$HOME/.config/zsh/.p10k.zsh" ]] && source "$HOME/.config/zsh/.p10k.zsh"
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
