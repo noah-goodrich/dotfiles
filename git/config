@@ -1,5 +1,6 @@
 [user]
-    name = Noah Goodrich
+	name = Noah Goodrich
+	email = goodrich.noah@gmail.com
     # email = goodrich.noah@gmail.com   ← uncomment and fill in
 
 [core]
