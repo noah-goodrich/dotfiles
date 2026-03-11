@@ -123,17 +123,27 @@ link_dotfiles() {
 # Packages plugin source dirs into installable .plugin files
 # -----------------------------------------------------------------------------
 build_claude_plugins() {
-    info "Building Claude plugins..."
+    info "Building Claude skills and project files..."
 
+    # Build .plugin files for Cowork / Claude Code
     if [ -x "$DOTFILES_DIR/claude/build-plugins.sh" ]; then
-        "$DOTFILES_DIR/claude/build-plugins.sh"
-        echo ""
-        info "Claude plugins built to: $DOTFILES_DIR/claude/dist/"
-        info "Install via Cowork: drag .plugin files into a chat"
-        info "  or use 'Copy to your skills' when they appear."
+        bash "$DOTFILES_DIR/claude/build-plugins.sh"
     else
-        warn "claude/build-plugins.sh not found or not executable, skipping"
+        warn "claude/build-plugins.sh not found, skipping plugin build"
     fi
+
+    # Build project instructions for claude.ai
+    if [ -x "$DOTFILES_DIR/claude/build-project.sh" ]; then
+        bash "$DOTFILES_DIR/claude/build-project.sh"
+    else
+        warn "claude/build-project.sh not found, skipping project build"
+    fi
+
+    echo ""
+    info "Claude artifacts built to: $DOTFILES_DIR/claude/dist/"
+    info "  .plugin files  → install via Cowork UI"
+    info "  writing-rules   → paste into claude.ai Project instructions"
+    info "  project-context  → upload as claude.ai Project knowledge file"
 }
 
 # -----------------------------------------------------------------------------

@@ -62,9 +62,26 @@ The `devcontainer.json` dotfiles integration will clone this repo and run
 | `gs` | git status |
 | `gl` | git log --oneline --graph |
 
-## Claude plugins
+## Claude skills
 
-Custom skills for Claude (Cowork, Claude Code, claude.ai). Source lives in `claude/plugins/`, built into `.plugin` files by `install.sh` or manually via `claude/build-plugins.sh`.
+Custom skills for Claude, with a unified build system that targets both Cowork/Claude Code (plugins) and claude.ai (Project instructions). All source lives in `claude/plugins/`; build scripts produce the right artifacts for each platform.
+
+### Layout
+
+```
+claude/
+├── plugins/                  # Skill source (single source of truth)
+│   ├── noah-writing-voice/   # noah-voice + ai-scoring
+│   ├── noah-content-tools/   # linkedin-post + snowflake-article
+│   └── token-cost/           # token/cost estimation
+├── project/                  # Project-specific context files
+│   └── snowflake-builders-blog.md
+├── build-plugins.sh          # → dist/*.plugin   (Cowork / Claude Code)
+├── build-project.sh          # → dist/writing-rules.md + dist/project-context.md (claude.ai)
+└── dist/                     # Built artifacts (gitignored)
+```
+
+### Plugins (Cowork / Claude Code)
 
 | Plugin | Skills | Purpose |
 |--------|--------|---------|
@@ -72,9 +89,37 @@ Custom skills for Claude (Cowork, Claude Code, claude.ai). Source lives in `clau
 | `noah-content-tools` | linkedin-post, snowflake-article | Platform-specific content creation (depends on writing-voice) |
 | `token-cost` | token-cost | Token/cost estimation on every response (standalone) |
 
-**Installing plugins:** After building, drag the `.plugin` files from `claude/dist/` into a Cowork chat or use the "Copy to your skills" button. Plugins are session-scoped in Cowork, so you'll re-install when starting fresh sessions.
+**Installing:** Drag `.plugin` files from `claude/dist/` into a Cowork chat or use "Copy to your skills." Plugins are session-scoped in Cowork, so re-install when starting fresh sessions.
 
-**Editing skills:** Edit the source files in `claude/plugins/*/skills/`, then rebuild with `claude/build-plugins.sh`.
+### Project instructions (claude.ai)
+
+`build-project.sh` extracts writing rules from the plugin sources and combines them into two files for claude.ai Projects:
+
+| Output | Goes in | Purpose |
+|--------|---------|---------|
+| `dist/writing-rules.md` | Project custom instructions | Voice rules, AI scoring, LinkedIn/article conventions, token cost |
+| `dist/project-context.md` | Project knowledge file (upload) | Series state, visual style, snowfort details — project-specific context |
+
+**Setup for a claude.ai Project:**
+
+1. Run `bash claude/build-project.sh` (or just `./install.sh`)
+2. Paste the contents of `dist/writing-rules.md` into the Project's custom instructions
+3. Upload `dist/project-context.md` as a Project knowledge file
+
+To use a different project context file: `bash claude/build-project.sh claude/project/other-project.md`
+
+### Editing skills
+
+Edit source files in `claude/plugins/*/skills/`, then rebuild:
+
+```bash
+# Rebuild everything
+./install.sh
+
+# Or rebuild individually
+bash claude/build-plugins.sh     # .plugin files only
+bash claude/build-project.sh     # claude.ai files only
+```
 
 ## Adding new dotfiles
 
