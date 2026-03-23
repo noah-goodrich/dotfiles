@@ -212,6 +212,16 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Window navigation (Space prefix, matching old vimrc)
+vim.keymap.set('n', '<Space>h', '<C-w>h', { desc = 'Move to left window' })
+vim.keymap.set('n', '<Space>j', '<C-w>j', { desc = 'Move to window below' })
+vim.keymap.set('n', '<Space>k', '<C-w>k', { desc = 'Move to window above' })
+vim.keymap.set('n', '<Space>l', '<C-w>l', { desc = 'Move to right window' })
+vim.keymap.set('n', '<Space>v', '<C-w>v', { desc = 'Split vertical' })
+vim.keymap.set('n', '<Space>s', '<C-w>s', { desc = 'Split horizontal' })
+vim.keymap.set('n', '<Space>q', '<C-w>q', { desc = 'Close window' })
+vim.keymap.set('n', '<Space>=', '<C-w>=', { desc = 'Equalize windows' })
+
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -603,16 +613,13 @@ require('lazy').setup({
       --  See `:help lsp-config` for information about keys and how to configure
       ---@type table<string, vim.lsp.Config>
       local servers = {
-        -- clangd = {},
-        -- gopls = {},
-        -- pyright = {},
-        -- rust_analyzer = {},
-        --
-        -- Some languages (like typescript) have entire language plugins that can be useful:
-        --    https://github.com/pmizio/typescript-tools.nvim
-        --
-        -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
+        -- Python — handles imports, type checking, go-to-definition for all Python files
+        pyright = {},
+
+        -- SQL — basic completion and go-to-definition for SQL files
+        -- Note: sqls needs a project config (~/.config/sqls/config.yml) to connect to a DB.
+        -- Without it, you still get syntax awareness but not live query results.
+        sqls = {},
 
         stylua = {}, -- Used to format Lua code
 
@@ -699,11 +706,8 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        python = { 'black', stop_after_first = true },
+        sql = { 'sqlfluff' },
       },
     },
   },

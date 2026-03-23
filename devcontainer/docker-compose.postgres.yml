@@ -1,0 +1,29 @@
+# Shared postgres — owned by no project, managed by dev.sh
+# All projects connect via the 'devnet' external network.
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: dev-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: dev
+      POSTGRES_USER: dev
+      POSTGRES_DB: dev
+    volumes:
+      - dev-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - devnet
+
+volumes:
+  dev-postgres-data:
+
+networks:
+  devnet:
+    external: true

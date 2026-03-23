@@ -116,6 +116,54 @@ link_dotfiles() {
 
     # ghostty
     link "$DOTFILES_DIR/ghostty"          "$HOME/.config/ghostty"
+
+    # dev startup script
+    mkdir -p "$HOME/dev"
+    link "$DOTFILES_DIR/dev.sh"           "$HOME/dev/dev.sh"
+    chmod +x "$DOTFILES_DIR/dev.sh"
+
+    # Claude Code — link config + hooks into ~/.claude/
+    # (Don't link the whole directory; ~/.claude/ also holds machine-local
+    # state like handovers, session logs, and auto-memory that shouldn't
+    # be in the repo.)
+    mkdir -p "$HOME/.claude/hooks"
+    link "$DOTFILES_DIR/claude/code/CLAUDE.md"     "$HOME/.claude/CLAUDE.md"
+    link "$DOTFILES_DIR/claude/code/settings.json" "$HOME/.claude/settings.json"
+    for hook in "$DOTFILES_DIR/claude/code/hooks/"*; do
+        [ -f "$hook" ] && link "$hook" "$HOME/.claude/hooks/$(basename "$hook")"
+    done
+    chmod +x "$DOTFILES_DIR/claude/code/hooks/"*
+
+    # Slash commands
+    mkdir -p "$HOME/.claude/commands"
+    for cmd in "$DOTFILES_DIR/claude/code/commands/"*.md; do
+        [ -f "$cmd" ] && link "$cmd" "$HOME/.claude/commands/$(basename "$cmd")"
+    done
+}
+
+# -----------------------------------------------------------------------------
+# Build base devcontainer image (if Docker is available)
+# This image is extended by every project's Dockerfile
+# -----------------------------------------------------------------------------
+build_base_devcontainer() {
+    if ! command -v docker &>/dev/null; then
+        warn "Docker not found — skipping base devcontainer image build"
+        return
+    fi
+
+    # Ensure shared Docker network exists (used by all devcontainers)
+    info "Ensuring devnet Docker network exists..."
+    docker network inspect devnet >/dev/null 2>&1 || docker network create devnet
+
+    local dockerfile="$DOTFILES_DIR/devcontainer/Dockerfile.base"
+    if [ -f "$dockerfile" ]; then
+        info "Building devcontainer-base:local image..."
+        docker build -f "$dockerfile" -t devcontainer-base:local "$DOTFILES_DIR/devcontainer/" \
+            && info "  → devcontainer-base:local built successfully" \
+            || warn "  → devcontainer-base:local build failed (Docker may not be running)"
+    else
+        warn "devcontainer/Dockerfile.base not found, skipping base image build"
+    fi
 }
 
 # -----------------------------------------------------------------------------
@@ -124,6 +172,10 @@ link_dotfiles() {
 # -----------------------------------------------------------------------------
 build_claude_plugins() {
     info "Building Claude skills and project files..."
+
+    # Ensure build scripts are executable (git clone can lose the execute bit)
+    chmod +x "$DOTFILES_DIR/claude/build-plugins.sh" 2>/dev/null || true
+    chmod +x "$DOTFILES_DIR/claude/build-project.sh" 2>/dev/null || true
 
     # Build .plugin files for Cowork / Claude Code
     if [ -x "$DOTFILES_DIR/claude/build-plugins.sh" ]; then
@@ -154,6 +206,7 @@ main() {
 
     install_deps
     link_dotfiles
+    build_base_devcontainer
     build_claude_plugins
 
     info "Done! Start a new shell or run: source ~/.zshrc"

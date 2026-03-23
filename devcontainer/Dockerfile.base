@@ -1,0 +1,64 @@
+# =============================================================================
+# Base devcontainer image — shared across all projects.
+# Provides: zsh, neovim (latest), tmux, git, ssh, claude-code CLI.
+#
+# Projects extend this with their own deps:
+#   FROM ghcr.io/noahgoodrich/devcontainer-base:latest  (once published)
+#   — or for local builds —
+#   FROM devcontainer-base:local
+#
+# NOTE: Built for Apple Silicon (arm64). If you ever run this on x86_64,
+# change nvim-linux-arm64 → nvim-linux64 in the Neovim install step below.
+# =============================================================================
+FROM mcr.microsoft.com/devcontainers/python:1-3.12-bookworm
+
+# Remove stale Yarn repo from base image (we don't use Yarn)
+RUN rm -f /etc/apt/sources.list.d/yarn.list
+
+# ── System tools ─────────────────────────────────────────────────────────────
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends \
+    curl \
+    fd-find \
+    fzf \
+    git \
+    iputils-ping \
+    jq \
+    less \
+    man-db \
+    openssl \
+    ripgrep \
+    tmux \
+    tree \
+    unzip \
+    vim \
+    wget \
+    zsh \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -sf /usr/bin/fdfind /usr/local/bin/fd
+
+# ── Neovim (latest stable — apt version is too old for modern plugins) ───────
+RUN apt-get update && apt-get remove -y neovim 2>/dev/null; apt-get clean \
+    && curl -fsSL https://github.com/neovim/neovim/releases/latest/download/nvim-linux-arm64.tar.gz -o /tmp/nvim.tar.gz \
+    && tar xzf /tmp/nvim.tar.gz -C /opt \
+    && ln -sf /opt/nvim-linux-arm64/bin/nvim /usr/local/bin/nvim \
+    && rm /tmp/nvim.tar.gz
+
+# ── Node.js + Claude Code CLI ────────────────────────────────────────────────
+# npm install -g is the correct method for Docker — installs claude to
+# /usr/local/bin so all users see it. The curl installer is for host machines
+# only (it installs to ~/.claude/local/ which is root-only during a build).
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && npm install -g @anthropic-ai/claude-code
+
+# ── Default shell ────────────────────────────────────────────────────────────
+RUN chsh -s /bin/zsh vscode
+
+# ── Claude Code — initialize config so first launch doesn't error ─────────────
+RUN mkdir -p /home/vscode \
+    && echo '{}' > /home/vscode/.claude.json \
+    && chown vscode:vscode /home/vscode/.claude.json

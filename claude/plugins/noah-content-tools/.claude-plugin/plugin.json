@@ -1,7 +1,7 @@
 {
   "name": "noah-content-tools",
-  "version": "0.1.0",
-  "description": "Content creation skills for LinkedIn posts and Snowflake Builders Blog articles. Requires noah-writing-voice plugin.",
+  "version": "0.1.12",
+  "description": "Content creation skills for LinkedIn posts and Snowflake Builders Blog articles. Works best with the noah-writing-voice plugin also installed.",
   "author": {
     "name": "Noah Goodrich"
   },

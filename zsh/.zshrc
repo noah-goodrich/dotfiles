@@ -67,7 +67,13 @@ export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share"
 
 # SSH agent — use macOS native keychain agent (prevents Docker from hijacking it)
-export SSH_AUTH_SOCK=$(launchctl getenv SSH_AUTH_SOCK)
+[[ "$OSTYPE" == darwin* ]] && export SSH_AUTH_SOCK=$(launchctl getenv SSH_AUTH_SOCK)
+
+# Load API keys from macOS Keychain (silent fail if not on macOS or key not stored)
+if [[ "$OSTYPE" == darwin* ]]; then
+  export ANTHROPIC_API_KEY=$(security find-generic-password -s "ANTHROPIC_API_KEY" -a "$USER" -w 2>/dev/null)
+  export GOOGLE_API_KEY=$(security find-generic-password -s "GOOGLE_API_KEY" -a "$USER" -w 2>/dev/null)
+fi
 
 # PATH additions
 export PATH="/opt/homebrew/bin:$PATH"      # Homebrew (macOS)
@@ -117,9 +123,10 @@ alias ta="tmux attach -t"
 alias tl="tmux ls"
 alias tn="tmux new -s"
 
+
 # Devcontainer shortcut — attach to dev session inside container
 # alias dev='docker exec -it <container_name> tmux new-session -A -s dev'
-
+alias dev="$HOME/dev/dev.sh"
 
 # =============================================================================
 # POWERLEVEL10K CONFIG
