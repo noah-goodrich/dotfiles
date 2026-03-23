@@ -9,6 +9,9 @@
 
 set -e
 
+# Ensure API keys are available for docker compose (don't rely on calling shell)
+source "$HOME/.config/dotfiles/zsh/secrets.zsh"
+
 SESSION="dev"
 COMPOSE_FILE=".devcontainer/docker-compose.yml"
 POSTGRES_COMPOSE="$HOME/.config/dotfiles/devcontainer/docker-compose.postgres.yml"
@@ -35,6 +38,15 @@ get_project_container() {
               --filter "label=dev.role=app" \
               --format '{{.Names}}' 2>/dev/null | head -1 \
     || docker compose -p "$name" -f "$dir/$COMPOSE_FILE" ps --format '{{.Names}}' 2>/dev/null | head -1
+}
+
+get_service_name() {
+    local dir="${1:-$(pwd)}"
+    local name
+    name=$(basename "$dir")
+    docker ps --filter "label=com.docker.compose.project=$name" \
+              --filter "label=dev.role=app" \
+              --format '{{.Label "com.docker.compose.service"}}' 2>/dev/null | head -1
 }
 
 get_shell() {
@@ -228,7 +240,7 @@ cmd_up() {
                 docker compose -p "$project_name" -f "$compose" up -d
                 container=$(wait_for_container "$project_dir")
                 shell=$(get_shell "$container")
-                exec_cmd="docker exec -it $container $shell"
+                exec_cmd="docker compose -p $project_name -f $compose exec $(get_service_name $project_dir) $shell"
                 resend_exec_to_panes "$project_name" "$exec_cmd"
             fi
             info "Project '$project_name' already running."
@@ -246,8 +258,10 @@ cmd_up() {
         container=$(wait_for_container "$project_dir")
     fi
     shell=$(get_shell "$container")
-    exec_cmd="docker exec -it $container $shell"
-    info "Container: $container  Shell: $shell"
+    local service
+    service=$(get_service_name "$project_dir")
+    exec_cmd="docker compose -p $project_name -f $compose exec $service $shell"
+    info "Container: $container  Service: $service  Shell: $shell"
 
     # Create window with 3 panes, all exec'd into container
     create_3pane_window "$project_name" "$exec_cmd"
@@ -329,10 +343,11 @@ cmd_restart() {
     docker compose -p "$project_name" -f "$compose" down
     docker compose -p "$project_name" -f "$compose" up -d
 
-    local container shell exec_cmd
+    local container shell service exec_cmd
     container=$(wait_for_container "$project_dir")
     shell=$(get_shell "$container")
-    exec_cmd="docker exec -it $container $shell"
+    service=$(get_service_name "$project_dir")
+    exec_cmd="docker compose -p $project_name -f $compose exec $service $shell"
 
     if has_window "$project_name"; then
         resend_exec_to_panes "$project_name" "$exec_cmd"

@@ -199,6 +199,26 @@ build_claude_plugins() {
 }
 
 # -----------------------------------------------------------------------------
+# Reload zshrc in all open tmux panes
+# -----------------------------------------------------------------------------
+reload_all_panes() {
+    if ! command -v tmux &>/dev/null || ! tmux list-sessions &>/dev/null 2>&1; then
+        info "No tmux session running — start a new shell to pick up changes"
+        return
+    fi
+
+    local pane_ids
+    pane_ids=$(tmux list-panes -a -F '#{pane_id}')
+    local count=0
+    while IFS= read -r pid; do
+        [ -z "$pid" ] && continue
+        tmux send-keys -t "$pid" " source ~/.zshrc" Enter
+        count=$((count + 1))
+    done <<< "$pane_ids"
+    info "Reloaded ~/.zshrc in $count tmux pane(s)"
+}
+
+# -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 main() {
@@ -208,8 +228,9 @@ main() {
     link_dotfiles
     build_base_devcontainer
     build_claude_plugins
+    reload_all_panes
 
-    info "Done! Start a new shell or run: source ~/.zshrc"
+    info "Done!"
 
     if [ -d "$BACKUP_DIR" ]; then
         warn "Backups saved to: $BACKUP_DIR"

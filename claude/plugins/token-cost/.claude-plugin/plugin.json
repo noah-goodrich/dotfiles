@@ -1,6 +1,6 @@
 {
   "name": "token-cost",
-  "version": "0.1.12",
+  "version": "0.1.17",
   "description": "Lightweight token cost estimation appended to every response. Universal utility for cost awareness.",
   "author": {
     "name": "Noah Goodrich"

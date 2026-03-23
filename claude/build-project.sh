@@ -62,9 +62,9 @@ SECTION
 
 # AI scoring categories
 if [ -f "$PLUGINS_DIR/noah-writing-voice/skills/ai-scoring/SKILL.md" ]; then
-    sed -n '/^### 1\./,/^## Output Format/p' "$PLUGINS_DIR/noah-writing-voice/skills/ai-scoring/SKILL.md" | head -n -1 >> "$RULES"
+    sed -n '/^### 1\./,/^## Output Format/p' "$PLUGINS_DIR/noah-writing-voice/skills/ai-scoring/SKILL.md" | sed '$ d' >> "$RULES"
     echo "" >> "$RULES"
-    sed -n '/^## Score Thresholds/,/^## Important/p' "$PLUGINS_DIR/noah-writing-voice/skills/ai-scoring/SKILL.md" | head -n -1 >> "$RULES"
+    sed -n '/^## Score Thresholds/,/^## Important/p' "$PLUGINS_DIR/noah-writing-voice/skills/ai-scoring/SKILL.md" | sed '$ d' >> "$RULES"
 fi
 
 cat >> "$RULES" << 'SECTION'
