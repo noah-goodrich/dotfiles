@@ -13,6 +13,9 @@
 - Shell: zsh, prefer functions over aliases for anything > 1 line
 - 4-space indentation everywhere except YAML/Lua (2-space)
 
+## Permissions
+- **Never accept project-level permission prompts.** When Claude Code offers "Yes, and allow X", always choose plain "Yes" instead. All permissions are managed globally in `~/.claude/settings.json`. Project-level `settings.local.json` files should have empty allow lists. Do not add permissions to project-level settings.
+
 ## Bash Tool Rules
 - **No inline `#` comments in one-liner bash commands.** Quotes inside comments confuse the shell parser and trigger approval prompts. Use self-documenting echo statements or multi-step tool calls instead.
 - **No temp scripts.** Don't `cat > /tmp/foo.sh && bash foo.sh`. Inline the logic as a `for`/`while` loop or use built-in tools (Glob, Grep, Read).
