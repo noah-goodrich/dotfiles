@@ -17,7 +17,12 @@
 - **No inline `#` comments in one-liner bash commands.** Quotes inside comments confuse the shell parser and trigger approval prompts. Use self-documenting echo statements or multi-step tool calls instead.
 - **No temp scripts.** Don't `cat > /tmp/foo.sh && bash foo.sh`. Inline the logic as a `for`/`while` loop or use built-in tools (Glob, Grep, Read).
 - **Use `git -C /path`** instead of `cd /path && git ...`. The permission system matches on command prefix.
-- **No `$()` command substitution when avoidable.** Use pipes, parameter expansion, or break into separate tool calls. The shell parser flags `$()` as potentially dangerous.
+- **Never use `$()` command substitution in Bash tool calls.** The shell parser flags it as dangerous and triggers approval prompts. Instead:
+  - `$(basename "$x")` → pipe to `basename` or use `${x##*/}` parameter expansion
+  - `$(dirname "$x")` → use `${x%/*}` parameter expansion
+  - `$(wc -l < file)` → pipe: `cat file | wc -l`
+  - `$(command)` in echo → break into separate tool calls or use a variable set earlier in the pipeline
+  - If substitution is truly unavoidable, use a `for` loop with the variable set via pipe: `... | while read -r val; do echo "$val"; done`
 
 ## Environment
 - macOS, Apple Silicon (arm64)
