@@ -13,6 +13,12 @@
 - Shell: zsh, prefer functions over aliases for anything > 1 line
 - 4-space indentation everywhere except YAML/Lua (2-space)
 
+## Bash Tool Rules
+- **No inline `#` comments in one-liner bash commands.** Quotes inside comments confuse the shell parser and trigger approval prompts. Use self-documenting echo statements or multi-step tool calls instead.
+- **No temp scripts.** Don't `cat > /tmp/foo.sh && bash foo.sh`. Inline the logic as a `for`/`while` loop or use built-in tools (Glob, Grep, Read).
+- **Use `git -C /path`** instead of `cd /path && git ...`. The permission system matches on command prefix.
+- **No `$()` command substitution when avoidable.** Use pipes, parameter expansion, or break into separate tool calls. The shell parser flags `$()` as potentially dangerous.
+
 ## Environment
 - macOS, Apple Silicon (arm64)
 - Terminal: Ghostty
