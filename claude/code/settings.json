@@ -142,7 +142,6 @@
       "Bash(gh repo view:*)",
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
-      "Bash(gh api:*)",
       "Bash(gh -C:*)",
       "Bash(echo:*)",
       "Bash(pwd:*)",
