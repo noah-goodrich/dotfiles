@@ -1,4 +1,5 @@
 {
+  "model": "opus[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -66,13 +67,91 @@
       }
     ]
   },
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "Bash(cd:*)",
+      "Bash(for:*)",
+      "Bash(while:*)",
+      "Bash(bash -c:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(which:*)",
+      "Bash(file:*)",
+      "Bash(du:*)",
+      "Bash(df:*)",
+      "Bash(tree:*)",
+      "Bash(stat:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)",
+      "Bash(diff:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(awk:*)",
+      "Bash(sed -n:*)",
+      "Bash(cut:*)",
+      "Bash(tr:*)",
+      "Bash(tee:*)",
+      "Bash(xargs:*)",
+      "Bash(basename:*)",
+      "Bash(dirname:*)",
+      "Bash(realpath:*)",
+      "Bash(jq:*)",
+      "Bash(yq:*)",
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote:*)",
+      "Bash(git tag:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git config:*)",
+      "Bash(git blame:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git rev-list:*)",
+      "Bash(git shortlog:*)",
+      "Bash(echo:*)",
+      "Bash(pwd:*)",
+      "Bash(env:*)",
+      "Bash(printenv:*)",
+      "Bash(date:*)",
+      "Bash(hostname:*)",
+      "Bash(uname:*)",
+      "Bash(whoami:*)",
+      "Bash(python3 --version:*)",
+      "Bash(python3 -c:*)",
+      "Bash(poetry --version:*)",
+      "Bash(poetry show:*)",
+      "Bash(dbt --version:*)",
+      "Bash(dbt ls:*)"
+    ]
+  },
+  "enabledPlugins": {
+    "token-cost@noah-local": true,
+    "dev-tools@noah-local": true,
+    "claude-code-setup@claude-plugins-official": true
+  },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
       "source": {
         "source": "github",
         "repo": "anthropics/claude-plugins-official"
       }
+    },
+    "noah-local": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/noahgoodrich/.config/dotfiles/claude/plugins"
+      }
     }
-  },
-  "model": "opus"
+  }
 }

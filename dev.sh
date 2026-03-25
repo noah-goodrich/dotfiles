@@ -104,6 +104,11 @@ create_3pane_window() {
     bottom=$(tmux split-window -v -p 25 -t "$main" -PF '#{pane_id}')
     side=$(tmux split-window -h -p 30 -t "$main" -PF '#{pane_id}')
 
+    # Force exact 70/30 split on the top panes (survives initial creation rounding)
+    local win_width
+    win_width=$(tmux display -t "$main" -p '#{window_width}')
+    tmux resize-pane -t "$main" -x $((win_width * 70 / 100))
+
     # Focus main pane
     tmux select-pane -t "$main"
 
