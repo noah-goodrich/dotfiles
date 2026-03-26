@@ -7,6 +7,9 @@
 - Show me the command I need to run, don't just describe it.
 - Chain commands with && or ; so I can copy-paste one block.
 
+## Markdown / Doc Generation
+- Wrap all generated markdown at 120 characters. No line should exceed 120 characters unless it's a URL or code block that can't be broken.
+
 ## Code Style
 - Python: black formatting, type hints on public functions
 - SQL: uppercase keywords, lowercase identifiers, CTEs over subqueries
