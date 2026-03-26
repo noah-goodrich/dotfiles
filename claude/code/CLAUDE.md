@@ -19,6 +19,7 @@
 ## Bash Tool Rules
 - **No inline `#` comments in one-liner bash commands.** Quotes inside comments confuse the shell parser and trigger approval prompts. Use self-documenting echo statements or multi-step tool calls instead.
 - **No temp scripts.** Don't `cat > /tmp/foo.sh && bash foo.sh`. Inline the logic as a `for`/`while` loop or use built-in tools (Glob, Grep, Read).
+- **Always use absolute paths, never `~`.** Permission prefix matching is literal — `find ~/dev` doesn't match `Bash(find:*)` the same way `find /Users/noahgoodrich/dev` does.
 - **Use `git -C /path`** instead of `cd /path && git ...`. The permission system matches on command prefix.
 - **Never use `$()` command substitution in Bash tool calls.** The shell parser flags it as dangerous and triggers approval prompts. Instead:
   - `$(basename "$x")` → pipe to `basename` or use `${x##*/}` parameter expansion
