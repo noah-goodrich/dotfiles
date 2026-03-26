@@ -106,6 +106,8 @@
       "Bash(realpath:*)",
       "Bash(jq:*)",
       "Bash(yq:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
       "Bash(git log:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",

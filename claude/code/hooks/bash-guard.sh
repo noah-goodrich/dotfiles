@@ -17,8 +17,12 @@ case "$COMMAND" in
         echo "Blocked: raw disk write" >&2
         exit 2
         ;;
-    *"curl"*"| bash"*|*"wget"*"| bash"*|*"curl"*"| sh"*)
+    *"curl"*"| bash"*|*"wget"*"| bash"*|*"curl"*"| sh"*|*"wget"*"| sh"*)
         echo "Blocked: piping remote script to shell" >&2
+        exit 2
+        ;;
+    *"curl"*"-X POST"*|*"curl"*"-X PUT"*|*"curl"*"-X DELETE"*|*"curl"*"-X PATCH"*|*"curl"*"-d "*|*"curl"*"--data"*|*"curl"*"--upload"*|*"curl"*"-F "*|*"curl"*"--form"*)
+        echo "Blocked: curl with write method — GET only" >&2
         exit 2
         ;;
 esac
