@@ -46,16 +46,26 @@ security find-generic-password -s "SERVICE_NAME" -a "$USER" -w
 
 This should print the key. If it returns nothing or errors, the store failed.
 
-## Step 3 — Wire to .zshrc (if requested)
+## Step 3 — Wire to secrets.zsh (if requested)
 
-If the user wants it auto-loaded, add this block to `~/.config/dotfiles/zsh/.zshrc` near the other Keychain exports (around the `SSH_AUTH_SOCK` line):
+Secrets are loaded from `~/.config/dotfiles/zsh/secrets.zsh`, which is sourced by `.zshrc`. This file has two parts
+to update:
+
+1. **Registry comment** — add a row to the table at the top so other machines/sessions know the secret exists:
+
+```
+#   ENV_VAR_NAME         ENV_VAR_NAME           Short description of purpose
+```
+
+2. **Export call** — add a `_keychain_export` line inside the `if [[ "$OSTYPE" == darwin* ]]` block, before
+   `unfunction _keychain_export`:
 
 ```zsh
-# SERVICE_NAME — loaded from macOS Keychain
-if [[ "$OSTYPE" == darwin* ]]; then
-  export SERVICE_NAME=$(security find-generic-password -s "SERVICE_NAME" -a "$USER" -w 2>/dev/null)
-fi
+    _keychain_export SERVICE_NAME
 ```
+
+The `_keychain_export` helper only sets the env var if the Keychain entry exists — no empty-string exports on
+machines where the secret hasn't been created yet.
 
 Then tell the user to reload their shell:
 ```zsh

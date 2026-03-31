@@ -164,7 +164,8 @@
   "enabledPlugins": {
     "token-cost@noah-local": true,
     "dev-tools@noah-local": true,
-    "claude-code-setup@claude-plugins-official": true
+    "claude-code-setup@claude-plugins-official": true,
+    "narrative@ontra-local": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
@@ -177,6 +178,12 @@
       "source": {
         "source": "directory",
         "path": "/Users/noahgoodrich/.config/dotfiles/claude/plugins"
+      }
+    },
+    "ontra-local": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/noahgoodrich/.config/ontra/claude/plugins"
       }
     }
   }
