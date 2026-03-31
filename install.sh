@@ -94,6 +94,76 @@ install_deps() {
 }
 
 # -----------------------------------------------------------------------------
+# Merge Claude Code settings.json (non-destructive)
+# Merges dotfiles base config into existing ~/.claude/settings.json.
+# Preserves hooks, plugins, and permissions added by other tools (e.g. borg).
+# -----------------------------------------------------------------------------
+merge_claude_settings() {
+    local template="$DOTFILES_DIR/claude/code/settings.json"
+    local target="$HOME/.claude/settings.json"
+    local plugins_path="$DOTFILES_DIR/claude/plugins"
+
+    if ! command -v jq &>/dev/null; then
+        warn "jq not found — cannot merge settings.json"
+        if [ ! -f "$target" ]; then
+            warn "Copying template as fallback (install jq and re-run to merge properly)"
+            cp "$template" "$target"
+        fi
+        return
+    fi
+
+    if [ ! -f "$target" ]; then
+        # Fresh install: copy template + inject marketplace path
+        info "Creating ~/.claude/settings.json from template..."
+        jq --arg p "$plugins_path" \
+            '.extraKnownMarketplaces["noah-local"] = {"source":{"source":"directory","path":$p}}' \
+            "$template" > "$target"
+        return
+    fi
+
+    # Existing file: merge dotfiles settings without clobbering
+    info "Merging dotfiles hooks into existing settings.json..."
+    local tmp="$target.tmp.$$"
+
+    # Strategy: use template as base for permissions/model, but UNION hooks
+    # from both files so nothing gets lost. Preserve existing plugins/marketplaces.
+    jq -s --arg p "$plugins_path" '
+        .[0] as $existing | .[1] as $template |
+
+        # Start with existing file (preserves everything)
+        $existing |
+
+        # Update permissions from template (dotfiles is authoritative for these)
+        .permissions = $template.permissions |
+
+        # Update model from template
+        .model = $template.model |
+
+        # Merge hooks: for each event in template, add any hooks not already present
+        .hooks = (
+            ($existing.hooks // {}) as $eh |
+            ($template.hooks // {}) as $th |
+            ($eh | keys) + ($th | keys) | unique | map(
+                . as $evt |
+                ($eh[$evt] // []) as $existing_entries |
+                ($th[$evt] // []) as $template_entries |
+                # Collect all hook commands already in existing
+                ($existing_entries | [.[].hooks[]?.command]) as $existing_cmds |
+                # Add template entries whose commands are not already present
+                ($template_entries | map(
+                    select(.hooks | map(.command) | all(. as $c | $existing_cmds | index($c) | not))
+                )) as $new_entries |
+                {key: $evt, value: ($existing_entries + $new_entries)}
+            ) | from_entries
+        ) |
+
+        # Inject local plugin marketplace path
+        .extraKnownMarketplaces["noah-local"] = {"source":{"source":"directory","path":$p}}
+    ' "$target" "$template" > "$tmp" && mv "$tmp" "$target"
+    info "  settings.json merged (existing hooks preserved)"
+}
+
+# -----------------------------------------------------------------------------
 # Link all dotfiles
 # -----------------------------------------------------------------------------
 link_dotfiles() {
@@ -117,18 +187,16 @@ link_dotfiles() {
     # ghostty
     link "$DOTFILES_DIR/ghostty"          "$HOME/.config/ghostty"
 
-    # dev startup script
-    mkdir -p "$HOME/dev"
-    link "$DOTFILES_DIR/dev.sh"           "$HOME/dev/dev.sh"
-    chmod +x "$DOTFILES_DIR/dev.sh"
-
     # Claude Code — link config + hooks into ~/.claude/
     # (Don't link the whole directory; ~/.claude/ also holds machine-local
     # state like handovers, session logs, and auto-memory that shouldn't
     # be in the repo.)
     mkdir -p "$HOME/.claude/hooks"
     link "$DOTFILES_DIR/claude/code/CLAUDE.md"     "$HOME/.claude/CLAUDE.md"
-    link "$DOTFILES_DIR/claude/code/settings.json" "$HOME/.claude/settings.json"
+
+    # settings.json: merge dotfiles base into existing file (preserves borg
+    # hooks, plugins, etc. added by other installers). Never overwrite.
+    merge_claude_settings
     for hook in "$DOTFILES_DIR/claude/code/hooks/"*; do
         [ -f "$hook" ] && link "$hook" "$HOME/.claude/hooks/$(basename "$hook")"
     done
