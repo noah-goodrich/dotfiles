@@ -25,6 +25,18 @@ case "$COMMAND" in
         echo "Blocked: curl with write method — GET only" >&2
         exit 2
         ;;
+    *"rm -rf"*".claude"*)
+        echo "Blocked: recursive delete of Claude settings directory" >&2
+        exit 2
+        ;;
+    *"git push --force"*" main"*|*"git push --force"*" master"*|*"git push -f "*" main"*|*"git push -f "*" master"*)
+        echo "Blocked: force push to main/master — use --force-with-lease or push to a branch" >&2
+        exit 2
+        ;;
+    *"> ~/.claude/settings.json"*|*">\$HOME/.claude/settings.json"*|*"> /Users/"*"/.claude/settings.json"*)
+        echo "Blocked: truncating Claude settings file" >&2
+        exit 2
+        ;;
 esac
 
 exit 0

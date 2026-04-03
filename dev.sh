@@ -215,6 +215,7 @@ cmd_up() {
 
         create_3pane_window "$project_name" "cd $project_dir"
         tmux set-option -t "$SESSION:$project_name" @project_dir "$project_dir"
+        borg add "$project_dir" 2>/dev/null || true
         info "Project '$project_name' ready (local)."
         attach_or_switch "$project_name"
         return
@@ -273,6 +274,7 @@ cmd_up() {
 
     # Store project dir as tmux user option on the window
     tmux set-option -t "$SESSION:$project_name" @project_dir "$project_dir"
+    borg add "$project_dir" 2>/dev/null || true
 
     dbg "cmd_up: final window list:"
     tmux list-windows -t "$SESSION" -F '         #I: #W (#{window_panes} panes)' >&2 || true
@@ -323,6 +325,12 @@ cmd_down() {
 # ── dev restart ──────────────────────────────────────────────────────────────
 
 cmd_restart() {
+    # dev restart --all: restart every project window's containers
+    if [ "${1:-}" = "--all" ]; then
+        cmd_restart_all
+        return
+    fi
+
     local project_name project_dir compose
 
     # Prefer @project_dir from the current tmux window — works even when pwd is
@@ -340,10 +348,17 @@ cmd_restart() {
         project_name=$(get_project_name)
     fi
 
-    compose="$project_dir/$COMPOSE_FILE"
-    [ -f "$compose" ] || die "No $COMPOSE_FILE found. Run from the project directory or its tmux window."
+    _restart_project "$project_name" "$project_dir"
+}
 
-    info "Restarting $project_name (window stays open)..."
+# Restart a single project by name and path (shared by cmd_restart and cmd_restart_all)
+_restart_project() {
+    local project_name="$1" project_dir="$2"
+    local compose="$project_dir/$COMPOSE_FILE"
+
+    [ -f "$compose" ] || { warn "$project_name: no $COMPOSE_FILE, skipping"; return 0; }
+
+    info "Restarting $project_name..."
 
     docker compose -p "$project_name" -f "$compose" down
     docker compose -p "$project_name" -f "$compose" up -d
@@ -356,11 +371,36 @@ cmd_restart() {
 
     if has_window "$project_name"; then
         resend_exec_to_panes "$project_name" "$exec_cmd"
-        info "Restarted. All panes re-exec'd into $container."
-        attach_or_switch "$project_name"
+        info "$project_name: restarted, panes re-exec'd."
     else
-        info "Container up. No window found — run: dev up"
+        info "$project_name: container up, no window."
     fi
+}
+
+cmd_restart_all() {
+    if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+        die "No dev session running."
+    fi
+
+    local windows
+    windows=(${(f)"$(tmux list-windows -t "$SESSION" -F '#W')"})
+
+    local count=0
+    for wname in $windows; do
+        [ "$wname" = "host" ] && continue
+
+        local pdir
+        pdir=$(tmux show-option -t "$SESSION:$wname" -v @project_dir 2>/dev/null) || true
+        if [ -z "$pdir" ]; then
+            warn "$wname: no @project_dir set, skipping"
+            continue
+        fi
+
+        _restart_project "$wname" "$pdir"
+        count=$((count + 1))
+    done
+
+    info "Restarted $count project(s)."
 }
 
 # ── dev status ───────────────────────────────────────────────────────────────
@@ -374,20 +414,32 @@ cmd_status() {
     echo "Session: $SESSION"
     local windows
     windows=(${(f)"$(tmux list-windows -t "$SESSION" -F '#W')"})
+
+    local has_borg=0
+    command -v borg &>/dev/null && has_borg=1
+
     for wname in $windows; do
         if [ "$wname" = "host" ]; then
             printf "  %-20s (host shell)\n" "$wname"
         else
-            local pdir status
+            local pdir container_status claude_status
             pdir=$(tmux show-option -t "$SESSION:$wname" -v @project_dir 2>/dev/null) || pdir="?"
             local container
             container=$(get_project_container "$pdir" 2>/dev/null)
             if [ -n "$container" ]; then
-                status=$(docker ps --format '{{.Status}}' --filter "name=$container" 2>/dev/null)
+                container_status=$(docker ps --format '{{.Status}}' --filter "name=$container" 2>/dev/null)
             else
-                status="not running"
+                container_status="no container"
             fi
-            printf "  %-20s %-30s %s\n" "$wname" "$pdir" "$status"
+
+            claude_status=""
+            if (( has_borg )); then
+                local borg_entry
+                borg_entry=$(borg status "$wname" 2>/dev/null | grep -m1 'Status:' | sed 's/.*Status:[[:space:]]*//')
+                [ -n "$borg_entry" ] && claude_status="claude:$borg_entry"
+            fi
+
+            printf "  %-20s %-30s %-20s %s\n" "$wname" "$pdir" "$container_status" "$claude_status"
         fi
     done
 }
@@ -410,6 +462,58 @@ cmd_sh() {
     exec docker compose -p "$project_name" -f "$compose" exec "$service" /bin/zsh
 }
 
+# ── dev fix ──────────────────────────────────────────────────────────────────
+
+cmd_fix() {
+    # Usage: dev fix [window-name|--all]
+    # Restores the standard 3-pane layout (70% main | 30% side on top, 25% bottom)
+    # by computing a tmux layout string from current window dimensions and applying it.
+    if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+        die "No dev session running."
+    fi
+
+    local targets=()
+    if [ "${1:-}" = "--all" ]; then
+        targets=(${(f)"$(tmux list-windows -t "$SESSION" -F '#W')"})
+    elif [ -n "${1:-}" ]; then
+        targets=("$1")
+    else
+        targets=("$(tmux display -p '#{window_name}')")
+    fi
+
+    for wname in $targets; do
+        local window="$SESSION:$wname"
+        local pane_count
+        pane_count=$(window_pane_count "$wname")
+        if [ "$pane_count" != "3" ]; then
+            warn "$wname: has $pane_count panes (expected 3), skipping"
+            continue
+        fi
+
+        local W H
+        W=$(tmux display -t "$window" -p '#{window_width}')
+        H=$(tmux display -t "$window" -p '#{window_height}')
+
+        # Pane indices assigned by create_3pane_window (creation order, stable across layout changes):
+        #   0 = main (top-left, 70% width, 75% height)
+        #   1 = bottom (full-width, 25% height)
+        #   2 = side (top-right, 30% width, 75% height)
+        local top_h bottom_h main_w side_w
+        top_h=$(( H * 75 / 100 ))
+        bottom_h=$(( H - top_h - 1 ))
+        main_w=$(( W * 70 / 100 ))
+        side_w=$(( W - main_w - 1 ))
+
+        # Layout string: outer vertical split [ top | bottom ], top has horizontal split { main | side }
+        local layout="${W}x${H},0,0[${W}x${top_h},0,0{${main_w}x${top_h},0,0,0,${side_w}x${top_h},$(( main_w + 1 )),0,2},${W}x${bottom_h},0,$(( top_h + 1 )),1]"
+
+        info "$wname: restoring layout (${W}x${H} → top_h=$top_h main_w=$main_w)"
+        echo "  tmux select-layout -t '$window' '$layout'"
+        tmux select-layout -t "$window" "$layout"
+        tmux select-pane -t "$window.0"
+    done
+}
+
 # ── dev help ─────────────────────────────────────────────────────────────────
 
 cmd_help() {
@@ -418,13 +522,18 @@ cmd_help() {
         tmux)  cat "$cheatdir/tmux/tmux-cheatsheet.md" ;;
         nvim)  cat "$cheatdir/nvim/neovim-cheatsheet.md" ;;
         "")
-            echo "dev up      Start project containers + add tmux window"
-            echo "dev down    Stop project containers + remove window"
-            echo "dev restart Restart containers + re-exec all panes"
-            echo "dev status  Show all projects in session"
-            echo "dev help    This message"
-            echo "dev help tmux   tmux cheatsheet"
-            echo "dev help nvim   neovim cheatsheet"
+            echo "dev up           Start project containers + add tmux window"
+            echo "dev down         Stop project containers + remove window"
+            echo "dev restart      Restart containers + re-exec all panes"
+            echo "dev restart --all  Restart ALL project containers"
+            echo "dev fix          Restore 3-pane layout for current window"
+            echo "dev fix <name>   Restore layout for named window"
+            echo "dev fix --all    Restore layout for all windows"
+            echo "dev status       Show all projects (containers + Claude status)"
+            echo "dev sh           Shell into current project container"
+            echo "dev help         This message"
+            echo "dev help tmux    tmux cheatsheet"
+            echo "dev help nvim    neovim cheatsheet"
             ;;
         *)  die "Unknown topic: $1 (try: tmux, nvim)" ;;
     esac
@@ -438,7 +547,8 @@ dbg "dispatch: SESSION=$SESSION  COMPOSE_FILE=$COMPOSE_FILE"
 case "${1:-}" in
     up)         cmd_up ;;
     down)       cmd_down ;;
-    restart)    cmd_restart ;;
+    restart)    cmd_restart "${2:-}" ;;
+    fix)        cmd_fix "${2:-}" ;;
     sh)         cmd_sh ;;
     status)     cmd_status ;;
     help|-h)    cmd_help "${2:-}" ;;

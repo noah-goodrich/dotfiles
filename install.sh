@@ -197,15 +197,25 @@ link_dotfiles() {
     # settings.json: merge dotfiles base into existing file (preserves borg
     # hooks, plugins, etc. added by other installers). Never overwrite.
     merge_claude_settings
+    # Copy hooks (not symlink) so they work inside devcontainers where
+    # bind-mounted ~/.claude can't follow host-absolute symlink targets.
     for hook in "$DOTFILES_DIR/claude/code/hooks/"*; do
-        [ -f "$hook" ] && link "$hook" "$HOME/.claude/hooks/$(basename "$hook")"
+        [ -f "$hook" ] || continue
+        local name
+        name="$(basename "$hook")"
+        rm -f "$HOME/.claude/hooks/$name"
+        cp "$hook" "$HOME/.claude/hooks/$name"
+        chmod +x "$HOME/.claude/hooks/$name"
     done
-    chmod +x "$DOTFILES_DIR/claude/code/hooks/"*
 
-    # Slash commands
+    # Slash commands — copy (not symlink) for devcontainer compatibility
     mkdir -p "$HOME/.claude/commands"
     for cmd in "$DOTFILES_DIR/claude/code/commands/"*.md; do
-        [ -f "$cmd" ] && link "$cmd" "$HOME/.claude/commands/$(basename "$cmd")"
+        [ -f "$cmd" ] || continue
+        local cname
+        cname="$(basename "$cmd")"
+        rm -f "$HOME/.claude/commands/$cname"
+        cp "$cmd" "$HOME/.claude/commands/$cname"
     done
 }
 

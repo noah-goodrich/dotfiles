@@ -11,7 +11,7 @@
 #
 #   Env Var              Keychain Service       Purpose
 #   -------------------  ---------------------  ----------------------------------------
-#   ANTHROPIC_API_KEY    ANTHROPIC_API_KEY      Anthropic API access (Claude CLI, SDKs)
+#   ANTHROPIC_SDK_KEY    ANTHROPIC_SDK_KEY      Anthropic Python SDK (NOT Claude Code — it uses Max subscription)
 #   GOOGLE_API_KEY       GOOGLE_API_KEY         Google API access
 #   JIRA_API_TOKEN       JIRA_API_TOKEN         Atlassian Jira API token
 #   JIRA_USERNAME        JIRA_USERNAME          Jira account email
@@ -29,7 +29,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
         export "$var_name=$val"
     }
 
-    _keychain_export ANTHROPIC_API_KEY
+    _keychain_export ANTHROPIC_SDK_KEY
     _keychain_export GOOGLE_API_KEY
     _keychain_export JIRA_API_TOKEN
     _keychain_export JIRA_USERNAME

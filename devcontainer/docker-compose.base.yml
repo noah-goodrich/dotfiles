@@ -17,23 +17,24 @@ x-dotfile-volumes: &dotfile-volumes
   # ~/.zshrc and ~/.p10k.zsh must be created in postCreateCommand:
   #   ln -sf ~/.config/dotfiles/zsh/.zshrc ~/.zshrc
   #   ln -sf ~/.config/dotfiles/zsh/.p10k.zsh ~/.p10k.zsh
-  - ~/.config/dotfiles/zsh:/home/vscode/.config/dotfiles/zsh:cached
-  - ~/.config/zsh:/home/vscode/.config/zsh:cached
+  - ~/.config/dotfiles/zsh:/home/dev/.config/dotfiles/zsh:cached
+  - ~/.config/zsh:/home/dev/.config/zsh:cached
 
   # --- editor ---
-  - ~/.config/nvim:/home/vscode/.config/nvim:cached
+  - ~/.config/nvim:/home/dev/.config/nvim:cached
 
   # --- git + ssh ---
-  - ~/.ssh:/home/vscode/.ssh:cached
-  - ~/.gitconfig:/home/vscode/.gitconfig:cached
+  - ~/.ssh:/home/dev/.ssh:cached
+  - ~/.gitconfig:/home/dev/.gitconfig:cached
   - /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock
 
   # --- claude code ---
-  - ~/.claude:/home/vscode/.claude:cached
+  - ~/.claude:/home/dev/.claude:cached
+  - ~/.config/borg:/home/dev/.config/borg:cached
   # ~/.claude.json is NOT bind-mounted as a file — Claude Code atomically replaces it
   # (write-then-rename), which orphans Docker single-file bind mounts. Instead, mount
   # the host home dir read-only and copy it fresh in postStartCommand:
-  #   cp /host-home/.claude.json /home/vscode/.claude.json 2>/dev/null || true
+  #   cp /host-home/.claude.json /home/dev/.claude.json 2>/dev/null || true
   - ~/:/host-home:ro
 
 # =============================================================================
