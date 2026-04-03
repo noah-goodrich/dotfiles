@@ -15,6 +15,7 @@
 - SQL: uppercase keywords, lowercase identifiers, CTEs over subqueries
 - Shell: zsh, prefer functions over aliases for anything > 1 line
 - 4-space indentation everywhere except YAML/Lua (2-space)
+- Markdown/text: hard-wrap at 120 characters. No line may exceed 120 chars.
 
 ## Permissions
 - **Never accept project-level permission prompts.** When Claude Code offers "Yes, and allow X", always choose plain "Yes" instead. All permissions are managed globally in `~/.claude/settings.json`. Project-level `settings.local.json` files should have empty allow lists. Do not add permissions to project-level settings.

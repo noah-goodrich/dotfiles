@@ -8,20 +8,24 @@ services:
       - ..:/workspace:cached
 
       # --- standard dotfile mounts (keep in sync with dotfiles/devcontainer/docker-compose.base.yml) ---
-      - ~/.zshrc:/home/vscode/.zshrc:cached
-      - ~/.p10k.zsh:/home/vscode/.p10k.zsh:cached
-      - ~/.config/zsh:/home/vscode/.config/zsh:cached
-      - ~/.config/nvim:/home/vscode/.config/nvim:cached
-      - ~/.ssh:/home/vscode/.ssh:cached
-      - ~/.gitconfig:/home/vscode/.gitconfig:cached
+      - ~/.zshrc:/home/dev/.zshrc:cached
+      - ~/.p10k.zsh:/home/dev/.p10k.zsh:cached
+      - ~/.config/zsh:/home/dev/.config/zsh:cached
+      - ~/.config/nvim:/home/dev/.config/nvim:cached
+      - ~/.ssh:/home/dev/.ssh:cached
+      - ~/.gitconfig:/home/dev/.gitconfig:cached
       - /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock
-      - ~/.claude:/home/vscode/.claude:cached
+      - ~/.claude:/home/dev/.claude:cached
+      - ~/.config/borg:/home/dev/.config/borg:cached
+      # host home read-only — postStartCommand copies .claude.json fresh each start
+      # (avoids stale inode from Claude Code's atomic file replacement)
+      - ~/:/host-home:ro
 
       # --- project-specific mounts (uncomment as needed) ---
-      # - ~/.gemini:/home/vscode/.gemini:cached
+      # - ~/.gemini:/home/dev/.gemini:cached
 
     working_dir: /workspace
-    user: vscode
+    user: dev
     command: sleep infinity
     environment:
       SSH_AUTH_SOCK: /run/host-services/ssh-auth.sock

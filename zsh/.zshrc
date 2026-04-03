@@ -121,12 +121,15 @@ alias tl="tmux ls"
 alias tn="tmux new -s"
 
 
-# Devcontainer shortcut — attach to dev session inside container
-# alias dev='docker exec -it <container_name> tmux new-session -A -s dev'
-alias dev="$HOME/dev/dev.sh"
-
 # =============================================================================
 # POWERLEVEL10K CONFIG
 # =============================================================================
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# =============================================================================
+# MACHINE-LOCAL OVERRIDES (gitignored)
+# =============================================================================
+# Put machine-specific aliases, exports, and completions in local.zsh.
+# Examples: GROCERY_DB_URL, cortex completions, work-only aliases.
+[[ -f "${0:A:h}/local.zsh" ]] && source "${0:A:h}/local.zsh"

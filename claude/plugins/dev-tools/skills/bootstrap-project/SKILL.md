@@ -86,13 +86,13 @@ Remind the user:
    ```bash
    docker build -f ~/.config/dotfiles/devcontainer/Dockerfile.base -t devcontainer-base:local .
    ```
-2. Then `cd <project-dir> && dev up` should work immediately
-3. If the project needs secrets/env files, create them before first `dev up`
+2. Then `drone up <project-name>` should work immediately
+3. If the project needs secrets/env files, create them before first `drone up`
 
 ## Important Conventions
 
-- The user is `vscode` with UID/GID 1000 (inherited from the base image)
-- All dotfile mounts go to `/home/vscode/` inside the container
+- The user is `dev` with UID/GID 1000 (inherited from the base image)
+- All dotfile mounts go to `/home/dev/` inside the container
 - The base image is `devcontainer-base:local` (built locally from dotfiles)
 - `dev up` / `dev down` / `dev status` are the CLI commands (defined in `~/.config/dotfiles/dev.sh`)
 - Every project MUST have `.devcontainer/docker-compose.yml` — `dev up` enforces this

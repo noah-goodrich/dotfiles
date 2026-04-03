@@ -5,3 +5,7 @@
 
 # Built plugin artifacts
 claude/dist/
+
+# Machine-local overrides (not shared across machines)
+zsh/local.zsh
+local/
