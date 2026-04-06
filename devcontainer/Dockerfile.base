@@ -63,6 +63,17 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 # ── Default shell ────────────────────────────────────────────────────────────
 RUN chsh -s /bin/zsh dev
 
+# ── Zsh plugins (fallback — host bind-mount overlays when present) ───────────
+USER dev
+RUN mkdir -p /home/dev/.config/zsh \
+    && git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
+         /home/dev/.config/zsh/powerlevel10k \
+    && git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions \
+         /home/dev/.config/zsh/zsh-autosuggestions \
+    && git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting \
+         /home/dev/.config/zsh/zsh-syntax-highlighting
+USER root
+
 # ── Claude Code — initialize config so first launch doesn't error ─────────────
 RUN mkdir -p /home/dev \
     && echo '{}' > /home/dev/.claude.json \

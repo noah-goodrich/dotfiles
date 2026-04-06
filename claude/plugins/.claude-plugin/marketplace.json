@@ -16,6 +16,11 @@
       "source": "./noah-content-tools"
     },
     {
+      "name": "noah-strategy",
+      "description": "Strategic analysis and executive brief production. Build-vs-buy evaluations, competitive landscape analysis, technology assessments, and architecture decision records.",
+      "source": "./noah-strategy"
+    },
+    {
       "name": "noah-writing-voice",
       "description": "Noah Goodrich's writing voice enforcement and AI detection scoring.",
       "source": "./noah-writing-voice"
