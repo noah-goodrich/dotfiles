@@ -18,6 +18,7 @@ x-dotfile-volumes: &dotfile-volumes
   #   ln -sf ~/.config/dotfiles/zsh/.zshrc ~/.zshrc
   #   ln -sf ~/.config/dotfiles/zsh/.p10k.zsh ~/.p10k.zsh
   - ~/.config/dotfiles/zsh:/home/dev/.config/dotfiles/zsh:cached
+  - ~/.config/dotfiles/claude:/home/dev/.config/dotfiles/claude:cached
   - ~/.config/zsh:/home/dev/.config/zsh:cached
 
   # --- editor ---

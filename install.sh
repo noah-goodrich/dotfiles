@@ -40,8 +40,12 @@ link() {
     # Remove stale symlink
     [ -L "$dst" ] && rm "$dst"
 
-    ln -sf "$src" "$dst"
-    info "Linked $dst → $src"
+    # Use a path relative to the symlink's directory so the link resolves
+    # correctly even when the home directory differs (e.g. inside containers).
+    local rel_src
+    rel_src=$(python3 -c "import os,sys; print(os.path.relpath(sys.argv[1], os.path.dirname(sys.argv[2])))" "$src" "$dst" 2>/dev/null) || rel_src="$src"
+    ln -sf "$rel_src" "$dst"
+    info "Linked $dst → $rel_src"
 }
 
 # -----------------------------------------------------------------------------
@@ -269,9 +273,20 @@ build_claude_plugins() {
         warn "claude/build-project.sh not found, skipping project build"
     fi
 
+    # Install plugins from the noah-local marketplace via Claude Code CLI
+    if command -v claude >/dev/null 2>&1; then
+        for plugin_dir in "$DOTFILES_DIR/claude/plugins/"*/; do
+            [ -d "$plugin_dir" ] || continue
+            plugin_name=$(basename "$plugin_dir")
+            info "Installing plugin: $plugin_name"
+            claude plugin install "${plugin_name}@noah-local" || warn "Failed to install $plugin_name (non-fatal)"
+        done
+    else
+        info "  .plugin files  → install via: claude plugin install <name>@noah-local"
+    fi
+
     echo ""
     info "Claude artifacts built to: $DOTFILES_DIR/claude/dist/"
-    info "  .plugin files  → install via Cowork UI"
     info "  writing-rules   → paste into claude.ai Project instructions"
     info "  project-context  → upload as claude.ai Project knowledge file"
 }
