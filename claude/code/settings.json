@@ -234,7 +234,7 @@
     "noah-local": {
       "source": {
         "source": "directory",
-        "path": "/Users/noah/.config/dotfiles/claude/plugins"
+        "path": "__DOTFILES_DIR__/claude/plugins"
       }
     }
   },

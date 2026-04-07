@@ -96,3 +96,6 @@ Remind the user:
 - The base image is `devcontainer-base:local` (built locally from dotfiles)
 - `dev up` / `dev down` / `dev status` are the CLI commands (defined in `~/.config/dotfiles/dev.sh`)
 - Every project MUST have `.devcontainer/docker-compose.yml` — `dev up` enforces this
+- The template files use `__USERNAME__` as a placeholder for the host user's username. When
+  generating devcontainer files, replace `__USERNAME__` with the actual username (the output of
+  `whoami` or `$USER` on the host machine)
