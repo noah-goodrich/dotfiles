@@ -67,7 +67,11 @@ export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share"
 
 # SSH agent — use macOS native keychain agent (prevents Docker from hijacking it)
-[[ "$OSTYPE" == darwin* ]] && export SSH_AUTH_SOCK=$(launchctl getenv SSH_AUTH_SOCK)
+if [[ "$OSTYPE" == darwin* ]]; then
+    local _ssh_sock
+    _ssh_sock=$(launchctl getenv SSH_AUTH_SOCK)
+    [[ -n "$_ssh_sock" ]] && export SSH_AUTH_SOCK="$_ssh_sock"
+fi
 
 # Load API keys from macOS Keychain
 source "${ZDOTDIR:-$HOME/.config/dotfiles/zsh}/secrets.zsh"
