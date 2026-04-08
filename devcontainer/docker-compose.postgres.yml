@@ -1,4 +1,4 @@
-# Shared postgres — owned by no project, managed by dev.sh
+# Shared postgres — owned by no project, managed externally
 # All projects connect via the 'devnet' external network.
 services:
   postgres:

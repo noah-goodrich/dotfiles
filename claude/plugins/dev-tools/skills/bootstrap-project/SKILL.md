@@ -1,11 +1,11 @@
 ---
 name: bootstrap-project
-description: "Scaffold a new project's devcontainer setup so `dev up` works immediately. Use this skill whenever the user wants to create a new project, set up a devcontainer, bootstrap a development environment, initialize a project for containerized development, or mentions needing docker-compose.yml / Dockerfile / devcontainer.json for a new project. Also trigger when the user says 'new project', 'start a project', 'set up dev environment', or 'make this work with dev up'."
+description: "Scaffold a new project's devcontainer setup so `drone up` works immediately. Use this skill whenever the user wants to create a new project, set up a devcontainer, bootstrap a development environment, initialize a project for containerized development, or mentions needing docker-compose.yml / Dockerfile / devcontainer.json for a new project. Also trigger when the user says 'new project', 'start a project', 'set up dev environment', or 'make this work with drone up'."
 ---
 
 # Bootstrap Project — Devcontainer Scaffolding
 
-This skill generates the `.devcontainer/` directory for a new project so that `dev up` works out of the box. Every project uses a shared base Docker image that provides the standard dev toolchain (zsh, neovim, tmux, git, ssh, node.js, claude-code CLI) and mounts the user's dotfiles into the container.
+This skill generates the `.devcontainer/` directory for a new project so that `drone up` works out of the box. Every project uses a shared base Docker image that provides the standard dev toolchain (zsh, neovim, tmux, git, ssh, node.js, claude-code CLI) and mounts the user's dotfiles into the container.
 
 ## Before You Begin
 
@@ -63,7 +63,7 @@ WORKDIR /workspace
 Always include the standard dotfile mounts block. Add project-specific services as needed.
 
 Key rules:
-- The main service MUST be named `devcontainer` (dev.sh's `get_container` greps for this)
+- The main service MUST be named `devcontainer` (drone's container lookup greps for this)
 - Project files mount at the workspace folder path
 - Always include `command: sleep infinity`
 - Always include `SSH_AUTH_SOCK` environment variable
@@ -94,8 +94,8 @@ Remind the user:
 - The user is `dev` with UID/GID 1000 (inherited from the base image)
 - All dotfile mounts go to `/home/dev/` inside the container
 - The base image is `devcontainer-base:local` (built locally from dotfiles)
-- `dev up` / `dev down` / `dev status` are the CLI commands (defined in `~/.config/dotfiles/dev.sh`)
-- Every project MUST have `.devcontainer/docker-compose.yml` — `dev up` enforces this
+- `drone up` / `drone down` / `drone status` are the CLI commands for managing devcontainers (part of borg-collective)
+- Every project MUST have `.devcontainer/docker-compose.yml` — `drone up` enforces this
 - The template files use `__USERNAME__` as a placeholder for the host user's username. When
   generating devcontainer files, replace `__USERNAME__` with the actual username (the output of
   `whoami` or `$USER` on the host machine)

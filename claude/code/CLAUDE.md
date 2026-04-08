@@ -57,6 +57,15 @@ Use these patterns to avoid permission prompts:
   - If substitution is truly unavoidable, use a `for` loop with the variable set via pipe:
     `... | while read -r val; do echo "$val"; done`
 
+## Subagent Rules
+When spawning subagents via the Agent tool, ALWAYS include these rules in the prompt:
+- Use `bash -c '...'` for pipelines and compound commands (`|`, `&&`, `;`)
+- Use `run-in /path command` instead of `cd /path && command`
+- Use absolute paths, never `~` (e.g. `/Users/noah/dev` not `~/dev`)
+- No `$()` command substitution in Bash tool calls — use parameter expansion or pipes
+- No inline `#` comments in one-liner bash commands
+- Prefer built-in tools (Grep, Glob, Read) over Bash equivalents (grep, find, cat)
+
 ## Environment
 - macOS, Apple Silicon (arm64)
 - Terminal: Ghostty
@@ -69,7 +78,7 @@ Use these patterns to avoid permission prompts:
 - Repo: ~/.config/dotfiles (symlinked to standard locations)
 - Cheatsheets: ~/.config/dotfiles/nvim/neovim-cheatsheet.md
                 ~/.config/dotfiles/tmux/tmux-cheatsheet.md
-- Dev CLI: ~/dev/dev.sh (aliased as `dev`)
+- Dev CLI: managed outside this repo (e.g. borg orchestrator)
 
 ## When I Say...
 - "dev environment" → devcontainer via docker compose
