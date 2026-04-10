@@ -90,3 +90,6 @@ If a previous session was compacted, context is at @~/.claude/handovers/latest.m
 
 ## Active Skills
 @~/.config/dotfiles/claude/plugins/token-cost/skills/token-cost/SKILL.md
+
+## Cortex Code CLI
+@~/.config/dotfiles/claude/code/CORTEX_RULES.md
