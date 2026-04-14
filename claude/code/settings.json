@@ -12,6 +12,7 @@
       "Bash(for:*)",
       "Bash(while:*)",
       "Bash(bash -c:*)",
+      "Bash(zsh -c:*)",
       "Bash(ls:*)",
       "Bash(cat:*)",
       "Bash(head:*)",
@@ -80,6 +81,7 @@
       "Bash(docker-compose:*)",
       "Bash(borg:*)",
       "Bash(drone:*)",
+      "Bash(cortex:*)",
       "Bash(curl:*)",
       "Bash(wget:*)",
       "Bash(poetry:*)",
@@ -88,10 +90,13 @@
       "Bash(ruff:*)",
       "Bash(black:*)",
       "Bash(mypy:*)",
-      "Bash(uv:*)"
+      "Bash(uv:*)",
+      "Bash(bats:*)",
+      "Bash(shellcheck:*)",
+      "Bash(shasum:*)",
+      "Bash(run-in:*)"
     ]
   },
-  "model": "opus[1m]",
   "hooks": {
     "Notification": [
       {
@@ -205,14 +210,6 @@
         ]
       }
     ]
-  },
-  "enabledPlugins": {
-    "claude-code-setup@claude-plugins-official": true,
-    "token-cost@noah-local": true,
-    "dev-tools@noah-local": true,
-    "noah-content-tools@noah-local": true,
-    "noah-writing-voice@noah-local": true,
-    "noah-strategy@noah-local": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
