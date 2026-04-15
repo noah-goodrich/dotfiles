@@ -105,7 +105,7 @@ install_deps() {
 merge_claude_settings() {
     local template="$DOTFILES_DIR/claude/code/settings.json"
     local target="$HOME/.claude/settings.json"
-    local plugins_path="$DOTFILES_DIR/claude/plugins"
+    local plugins_path="$HOME/dev/claude-plugins"
 
     if ! command -v jq &>/dev/null; then
         warn "jq not found — cannot merge settings.json"
@@ -249,46 +249,81 @@ build_base_devcontainer() {
 }
 
 # -----------------------------------------------------------------------------
-# Build Claude plugins
-# Packages plugin source dirs into installable .plugin files
+# Clone or update the claude-plugins repo
+# Source: github.com/noah-goodrich/claude-plugins
+# Cloned to: ~/dev/claude-plugins
+# The noah-local marketplace points at this clone so Claude Code can install
+# plugins without needing the plugin source in the dotfiles repo.
 # -----------------------------------------------------------------------------
-build_claude_plugins() {
-    info "Building Claude skills and project files..."
+CLAUDE_PLUGINS_DIR="$HOME/dev/claude-plugins"
+CLAUDE_PLUGINS_REPO="https://github.com/noah-goodrich/claude-plugins.git"
 
-    # Ensure build scripts are executable (git clone can lose the execute bit)
-    chmod +x "$DOTFILES_DIR/claude/build-plugins.sh" 2>/dev/null || true
-    chmod +x "$DOTFILES_DIR/claude/build-project.sh" 2>/dev/null || true
-
-    # Build .plugin files for Cowork / Claude Code
-    if [ -x "$DOTFILES_DIR/claude/build-plugins.sh" ]; then
-        bash "$DOTFILES_DIR/claude/build-plugins.sh"
+sync_claude_plugins() {
+    if [ -d "$CLAUDE_PLUGINS_DIR/.git" ]; then
+        info "Updating claude-plugins..."
+        git -C "$CLAUDE_PLUGINS_DIR" pull --ff-only || warn "claude-plugins pull failed (non-fatal)"
     else
-        warn "claude/build-plugins.sh not found, skipping plugin build"
+        info "Cloning claude-plugins..."
+        git clone "$CLAUDE_PLUGINS_REPO" "$CLAUDE_PLUGINS_DIR" \
+            || warn "claude-plugins clone failed (non-fatal)"
     fi
+}
+
+install_claude_plugins() {
+    info "Installing Claude plugins and project files..."
+
+    sync_claude_plugins
 
     # Build project instructions for claude.ai
-    if [ -x "$DOTFILES_DIR/claude/build-project.sh" ]; then
+    if chmod +x "$DOTFILES_DIR/claude/build-project.sh" 2>/dev/null; then
         bash "$DOTFILES_DIR/claude/build-project.sh"
     else
         warn "claude/build-project.sh not found, skipping project build"
     fi
 
-    # Install plugins from the noah-local marketplace via Claude Code CLI
-    if command -v claude >/dev/null 2>&1; then
-        for plugin_dir in "$DOTFILES_DIR/claude/plugins/"*/; do
+    # Register the marketplace with the Claude Code CLI. Claude Code caches
+    # marketplace state separately from settings.json, so we must use the CLI
+    # to update it — writing to settings.json alone is not enough.
+    if ! command -v claude >/dev/null 2>&1; then
+        info "  claude CLI not found — install plugins later via: claude plugin install <name>@noah-local"
+    elif [ -d "$CLAUDE_PLUGINS_DIR" ]; then
+        # Re-register marketplace to pick up path changes (remove is a no-op if missing)
+        claude plugin marketplace remove noah-local 2>/dev/null || true
+        claude plugin marketplace add "$CLAUDE_PLUGINS_DIR" \
+            && info "  noah-local marketplace → $CLAUDE_PLUGINS_DIR" \
+            || warn "Failed to register noah-local marketplace (non-fatal)"
+
+        for plugin_dir in "$CLAUDE_PLUGINS_DIR"/*/; do
             [ -d "$plugin_dir" ] || continue
+            plugin_json="$plugin_dir/.claude-plugin/plugin.json"
+            [ -f "$plugin_json" ] || continue
             plugin_name=$(basename "$plugin_dir")
             info "Installing plugin: $plugin_name"
             claude plugin install "${plugin_name}@noah-local" || warn "Failed to install $plugin_name (non-fatal)"
         done
-    else
-        info "  .plugin files  → install via: claude plugin install <name>@noah-local"
     fi
 
     echo ""
     info "Claude artifacts built to: $DOTFILES_DIR/claude/dist/"
-    info "  writing-rules   → paste into claude.ai Project instructions"
     info "  project-context  → upload as claude.ai Project knowledge file"
+}
+
+# -----------------------------------------------------------------------------
+# Create ~/.gitconfig.local stub if missing
+# This file holds machine-specific identity (user.email) and is gitignored —
+# it is never committed to the dotfiles repo.
+# -----------------------------------------------------------------------------
+ensure_gitconfig_local() {
+    local gitconfig_local="$HOME/.gitconfig.local"
+    if [ ! -f "$gitconfig_local" ]; then
+        cat > "$gitconfig_local" <<'EOF'
+[user]
+	# Set your email for this machine:
+	email = your@email.com
+EOF
+        warn "Created ~/.gitconfig.local — set your email:"
+        warn "  git config -f ~/.gitconfig.local user.email 'your@email.com'"
+    fi
 }
 
 # -----------------------------------------------------------------------------
@@ -318,9 +353,10 @@ main() {
     info "Starting dotfiles installation from $DOTFILES_DIR"
 
     install_deps
+    ensure_gitconfig_local
     link_dotfiles
     build_base_devcontainer
-    build_claude_plugins
+    install_claude_plugins
     reload_all_panes
 
     info "Done!"

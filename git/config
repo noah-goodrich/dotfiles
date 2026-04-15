@@ -1,7 +1,11 @@
 [user]
 	name = Noah Goodrich
-	email = ngoodrich@ontra.ai
-    # email = goodrich.noah@gmail.com   ← uncomment and fill in
+	# Email is machine-local — set in ~/.gitconfig.local (gitignored, not in this repo).
+	# install.sh creates a stub on first run. Set with:
+	#   git config -f ~/.gitconfig.local user.email "your@email.com"
+
+[include]
+	path = ~/.gitconfig.local
 
 [core]
     editor = nvim
