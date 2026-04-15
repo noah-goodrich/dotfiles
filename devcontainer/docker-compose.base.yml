@@ -32,10 +32,11 @@ x-dotfile-volumes: &dotfile-volumes
   # --- claude code ---
   - ~/.claude:/home/dev/.claude:cached
   - ~/.config/borg:/home/dev/.config/borg:cached
-  # ~/.claude.json is NOT bind-mounted as a file — Claude Code atomically replaces it
-  # (write-then-rename), which orphans Docker single-file bind mounts. Instead, mount
-  # the host home dir read-only and copy it fresh in postStartCommand:
+  # ~/.claude.json and ~/.mcp.json are NOT bind-mounted as files — Claude Code atomically
+  # replaces them (write-then-rename), which orphans Docker single-file bind mounts.
+  # Instead, mount the host home dir read-only and copy them fresh in postStartCommand:
   #   cp /host-home/.claude.json /home/dev/.claude.json 2>/dev/null || true
+  #   cp /host-home/.mcp.json /home/dev/.mcp.json 2>/dev/null || true
   - ~/:/host-home:ro
 
 # =============================================================================

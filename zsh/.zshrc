@@ -137,3 +137,7 @@ alias tn="tmux new -s"
 # Put machine-specific aliases, exports, and completions in local.zsh.
 # Examples: GROCERY_DB_URL, cortex completions, work-only aliases.
 [[ -f "${0:A:h}/local.zsh" ]] && source "${0:A:h}/local.zsh"
+
+# Cortex CLI completion (disable via /settings in cortex)
+[[ -s ~/.zsh/completions/cortex.zsh ]] && source ~/.zsh/completions/cortex.zsh
+[[ -f /workspace/.venv/bin/activate ]] && source /workspace/.venv/bin/activate

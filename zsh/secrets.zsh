@@ -16,6 +16,8 @@
 #   JIRA_API_TOKEN       JIRA_API_TOKEN         Atlassian Jira API token
 #   JIRA_USERNAME        JIRA_USERNAME          Jira account email
 #   JIRA_URL             JIRA_URL               Jira site URL (e.g. https://foo.atlassian.net)
+#   NEXUS_USERNAME       NEXUS_USERNAME         Nexus artifact repo user token name
+#   NEXUS_TOKEN          NEXUS_TOKEN            Nexus artifact repo token
 
 if [[ "$OSTYPE" == darwin* ]]; then
     # Export env var from Keychain only if the entry exists.
@@ -34,6 +36,13 @@ if [[ "$OSTYPE" == darwin* ]]; then
     _keychain_export JIRA_API_TOKEN
     _keychain_export JIRA_USERNAME
     _keychain_export JIRA_URL
+    _keychain_export NEXUS_USERNAME
+    _keychain_export NEXUS_TOKEN
 
     unfunction _keychain_export
+
+    if [[ -n "$NEXUS_USERNAME" && -n "$NEXUS_TOKEN" ]]; then
+        export PIP_INDEX_URL="https://${NEXUS_USERNAME}:${NEXUS_TOKEN}@facts.ontra.tools/repository/pypi-internal/simple"
+        export PIP_EXTRA_INDEX_URL="https://pypi.org/simple/"
+    fi
 fi

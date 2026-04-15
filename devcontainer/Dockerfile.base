@@ -74,6 +74,12 @@ RUN mkdir -p /home/dev/.config/zsh \
          /home/dev/.config/zsh/zsh-syntax-highlighting
 USER root
 
+# ── Snowflake Cortex Code CLI ────────────────────────────────────────────────
+# Install script prompts to add ~/.local/bin to PATH — suppress the TTY prompt
+# and add PATH manually. The install itself is non-interactive.
+RUN su dev -c 'curl -LsS https://ai.snowflake.com/static/cc-scripts/install.sh | sh' || true
+ENV PATH="/home/dev/.local/bin:${PATH}"
+
 # ── Claude Code — initialize config so first launch doesn't error ─────────────
 RUN mkdir -p /home/dev \
     && echo '{}' > /home/dev/.claude.json \
