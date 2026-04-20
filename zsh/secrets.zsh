@@ -19,6 +19,9 @@
 #   NEXUS_HOST           NEXUS_HOST             Nexus host (e.g. nexus.example.com) — no-op if unset
 #   NEXUS_USERNAME       NEXUS_USERNAME         Nexus artifact repo user token name
 #   NEXUS_TOKEN          NEXUS_TOKEN            Nexus artifact repo token
+#   SUPABASE_ACCESS_TOKEN SUPABASE_ACCESS_TOKEN Supabase CLI + management API token (for `supabase login`, project linking, db push)
+#   REVEAL_SUPABASE_DB_PASSWORD REVEAL_SUPABASE_DB_PASSWORD  Postgres password for stillpoint-labs/reveal Supabase Cloud project
+#   INGLE_SUPABASE_DB_PASSWORD  INGLE_SUPABASE_DB_PASSWORD   Postgres password for stillpoint-labs/ingle  Supabase Cloud project (set via dashboard if forgotten)
 
 if [[ "$OSTYPE" == darwin* ]]; then
     # Export env var from Keychain only if the entry exists.
@@ -40,6 +43,9 @@ if [[ "$OSTYPE" == darwin* ]]; then
     _keychain_export NEXUS_HOST
     _keychain_export NEXUS_USERNAME
     _keychain_export NEXUS_TOKEN
+    _keychain_export SUPABASE_ACCESS_TOKEN
+    _keychain_export REVEAL_SUPABASE_DB_PASSWORD
+    _keychain_export INGLE_SUPABASE_DB_PASSWORD
 
     unfunction _keychain_export
 
