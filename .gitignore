@@ -10,3 +10,4 @@ claude/dist/
 zsh/local.zsh
 local/
 .borg/
+.borg-project
