@@ -57,8 +57,14 @@ x-dotfile-volumes: &dotfile-volumes
 #         context: ..
 #         dockerfile: .devcontainer/Dockerfile
 #       volumes:
-#         - ..:/workspace:cached
+#         # Mount at /workspaces/<project> — NOT /workspace. Every drone used to
+#         # mount at /workspace, which made Claude Code's project-dir encoding
+#         # (~/.claude/projects/-workspace) collide across drones. Per-project
+#         # subpaths isolate session history. postStartCommand should symlink
+#         # /workspace → /workspaces/<project> so legacy scripts still resolve.
+#         - ..:/workspaces/<project>:cached
 #         *dotfile-volumes
+#       working_dir: /workspaces/<project>
 #       environment:
 #         SSH_AUTH_SOCK: /run/host-services/ssh-auth.sock
 #       command: sleep infinity
