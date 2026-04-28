@@ -79,6 +79,7 @@ source "${ZDOTDIR:-$HOME/.config/dotfiles/zsh}/secrets.zsh"
 # PATH additions
 export PATH="/opt/homebrew/bin:$PATH"      # Homebrew (macOS)
 export PATH="$HOME/.local/bin:$HOME/.claude/bin:$PATH"
+export PATH="$HOME/.config/dotfiles/zsh/bin:$PATH"   # dotfiles-shipped scripts (e.g. cairn client)
 
 
 # =============================================================================
