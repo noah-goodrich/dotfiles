@@ -38,6 +38,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
         export "$var_name=$val"
     }
 
+    # BEGIN _keychain_export block
     _keychain_export ANTHROPIC_SDK_KEY
     _keychain_export GOOGLE_API_KEY
     _keychain_export JIRA_API_TOKEN
@@ -51,6 +52,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
     _keychain_export REVEAL_SUPABASE_ANON_KEY
     _keychain_export INGLE_SUPABASE_DB_PASSWORD
     _keychain_export SNOWFLAKE_PAT
+    # END _keychain_export block
 
     unfunction _keychain_export
 
