@@ -1,5 +1,6 @@
 [user]
 	name = Noah Goodrich
+	email = goodrich.noah@gmail.com
 	# Email is machine-local — set in ~/.gitconfig.local (gitignored, not in this repo).
 	# install.sh creates a stub on first run. Set with:
 	#   git config -f ~/.gitconfig.local user.email "your@email.com"
@@ -11,6 +12,7 @@
     editor = nvim
     autocrlf = input
     excludesfile = ~/.config/git/ignore
+    hooksPath = ~/.config/dotfiles/git/hooks
 
 [init]
     defaultBranch = main
