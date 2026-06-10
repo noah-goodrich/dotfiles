@@ -1,0 +1,272 @@
+#!/usr/bin/env zsh
+# cairn — thin client for the cairn HTTP API on devnet.
+#
+# Distributed via dotfiles. Available on host + every devcontainer that mounts
+# ~/.config/dotfiles/zsh. Talks to the cairn-api container; no Python deps.
+#
+# Default URL: tries http://cairn-api:8767 first (devnet name resolution from
+# inside containers), falls back to http://localhost:8767 (host port mapping).
+# Override with CAIRN_API_URL.
+
+set -euo pipefail
+
+# Resolve curl/jq to absolute paths up-front so the script works in non-interactive
+# shells where PATH may be stripped (containers, Claude Code sandbox, cron, etc.).
+PATH="/usr/local/bin:/usr/bin:/bin${PATH:+:$PATH}"
+export PATH
+
+CAIRN_BIN_VERSION="0.1.0"
+
+_die() { printf 'cairn: %s\n' "$*" >&2; exit 1; }
+
+CURL="$(command -v curl 2>/dev/null)" || _die "curl is required"
+JQ="$(command -v jq 2>/dev/null)"    || _die "jq is required"
+
+_cairn_pick_url() {
+    if [[ -n "${CAIRN_API_URL:-}" ]]; then
+        printf '%s' "$CAIRN_API_URL"
+        return
+    fi
+    # Only probe the devnet name when we're inside a Docker container; on the host,
+    # cairn-api never resolves and we'd burn the full 2-second timeout every invocation.
+    if [[ -f /.dockerenv ]] && "$CURL" -fsS --max-time 2 http://cairn-api:8767/health >/dev/null 2>&1; then
+        printf '%s' "http://cairn-api:8767"
+        return
+    fi
+    printf '%s' "http://localhost:8767"
+}
+
+CAIRN_URL="$(_cairn_pick_url)"
+
+# ---- helpers ----------------------------------------------------------------
+
+_url_encode() {
+    "$JQ" -rn --arg v "$1" '$v|@uri'
+}
+
+_get() {
+    local path="$1"
+    local accept="${2:-application/json}"
+    "$CURL" -fsS --max-time 10 -H "Accept: $accept" "${CAIRN_URL}${path}"
+}
+
+_post_json() {
+    # Usage: _post_json <path> <json-body>
+    "$CURL" -fsS --max-time 15 -H "Content-Type: application/json" \
+        -X POST -d "$2" "${CAIRN_URL}$1"
+}
+
+# ---- subcommands ------------------------------------------------------------
+
+cmd_health() {
+    local out
+    if ! out="$("$CURL" -fsS --max-time 5 "${CAIRN_URL}/health")"; then
+        printf 'cairn: API unreachable at %s\n' "$CAIRN_URL" >&2
+        return 1
+    fi
+    printf '%s\n' "$out"
+}
+
+cmd_version() {
+    local server="?"
+    if server="$("$CURL" -fsS --max-time 3 "${CAIRN_URL}/health" 2>/dev/null | "$JQ" -r '.version // "?"')"; then :; fi
+    printf 'cairn client %s, server %s (%s)\n' "$CAIRN_BIN_VERSION" "$server" "$CAIRN_URL"
+}
+
+cmd_stats() {
+    local out
+    out="$(_get /stats)"
+    printf 'Cairn Knowledge Graph Statistics\n'
+    printf '%s\n' "-----------------------------------"
+    printf '%s\n' "$out" \
+        | "$JQ" -r 'to_entries[] | (.key as $k | .value as $v | "  \($k)" + (" " * (20 - ($k|length))) + " \($v)")'
+}
+
+cmd_search() {
+    local query="" project="" tags="" max="10"
+    [[ $# -gt 0 ]] || _die "search requires a query"
+    query="$1"; shift
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --project) project="$2"; shift 2 ;;
+            --project=*) project="${1#*=}"; shift ;;
+            --tags) tags="$2"; shift 2 ;;
+            --tags=*) tags="${1#*=}"; shift ;;
+            --max) max="$2"; shift 2 ;;
+            --max=*) max="${1#*=}"; shift ;;
+            *) shift ;;
+        esac
+    done
+    local qstr
+    qstr="?q=$(_url_encode "$query")&max=${max}"
+    [[ -n "$project" ]] && qstr+="&project=$(_url_encode "$project")"
+    [[ -n "$tags" ]]    && qstr+="&tags=$(_url_encode "$tags")"
+    _get "/search${qstr}" "text/plain"
+    printf '\n'
+}
+
+# ---- record dispatcher ------------------------------------------------------
+
+# Parse flag-style key/value args from positional args:
+#   --foo bar --baz qux  →  ["foo"]="bar" ["baz"]="qux"
+# Skips anything that's not a --flag.
+typeset -gA _ARGS
+
+_collect_kv() {
+    _ARGS=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --*=*) local k="${1#--}"; _ARGS[${k%%=*}]="${k#*=}"; shift ;;
+            --*)   _ARGS[${1#--}]="${2:-}"; shift 2 ;;
+            *)     shift ;;
+        esac
+    done
+}
+
+_split_csv_to_json_array() {
+    # Usage: _split_csv_to_json_array "a,b,c" → ["a","b","c"]
+    local v="${1:-}"
+    if [[ -z "$v" ]]; then printf '[]'; return; fi
+    "$JQ" -nc --arg s "$v" '$s | split(",") | map(. | gsub("^\\s+|\\s+$"; ""))'
+}
+
+cmd_record() {
+    local kind="${1:-}"
+    [[ -n "$kind" ]] || _die "record requires a kind: session|decision|pattern|observation"
+    shift
+    _collect_kv "$@"
+
+    local body path
+    case "$kind" in
+        session)
+            : "${_ARGS[id]:?--id required}"
+            : "${_ARGS[project]:?--project required}"
+            body="$("$JQ" -nc \
+                --arg id "${_ARGS[id]}" \
+                --arg project "${_ARGS[project]}" \
+                --arg tool "${_ARGS[tool]:-claude-code}" \
+                --arg objective "${_ARGS[objective]:-}" \
+                --arg notes "${_ARGS[notes]:-}" \
+                '{id:$id, project:$project, tool:$tool}
+                 + (if $objective != "" then {objective:$objective} else {} end)
+                 + (if $notes != "" then {notes:$notes} else {} end)')"
+            path=/record/session
+            ;;
+        decision)
+            : "${_ARGS[id]:?--id required}"
+            : "${_ARGS[project]:?--project required}"
+            : "${_ARGS[domain]:?--domain required}"
+            : "${_ARGS[decision]:?--decision required}"
+            local tags_json; tags_json="$(_split_csv_to_json_array "${_ARGS[tags]:-}")"
+            body="$("$JQ" -nc \
+                --arg id "${_ARGS[id]}" \
+                --arg project "${_ARGS[project]}" \
+                --arg domain "${_ARGS[domain]}" \
+                --arg decision "${_ARGS[decision]}" \
+                --arg context "${_ARGS[context]:-}" \
+                --arg reasoning "${_ARGS[reasoning]:-}" \
+                --argjson tags "$tags_json" \
+                --arg confidence "${_ARGS[confidence]:-0.7}" \
+                --arg source_tool "${_ARGS[source_tool]:-${_ARGS[source-tool]:-}}" \
+                '{id:$id, project:$project, domain:$domain, decision:$decision,
+                  tags:$tags, confidence:($confidence|tonumber)}
+                 + (if $context != "" then {context:$context} else {} end)
+                 + (if $reasoning != "" then {reasoning:$reasoning} else {} end)
+                 + (if $source_tool != "" then {source_tool:$source_tool} else {} end)')"
+            path=/record/decision
+            ;;
+        pattern)
+            : "${_ARGS[id]:?--id required}"
+            : "${_ARGS[description]:?--description required}"
+            : "${_ARGS[steps]:?--steps required}"
+            local steps_json pitfalls_json tags_json
+            steps_json="$(_split_csv_to_json_array "${_ARGS[steps]}")"
+            pitfalls_json="$(_split_csv_to_json_array "${_ARGS[pitfalls]:-}")"
+            tags_json="$(_split_csv_to_json_array "${_ARGS[tags]:-}")"
+            body="$("$JQ" -nc \
+                --arg id "${_ARGS[id]}" \
+                --arg description "${_ARGS[description]}" \
+                --arg project "${_ARGS[project]:-}" \
+                --arg domain "${_ARGS[domain]:-}" \
+                --argjson steps "$steps_json" \
+                --argjson pitfalls "$pitfalls_json" \
+                --argjson tags "$tags_json" \
+                --arg confidence "${_ARGS[confidence]:-0.7}" \
+                '{id:$id, description:$description, steps:$steps,
+                  pitfalls:$pitfalls, tags:$tags, confidence:($confidence|tonumber)}
+                 + (if $project != "" then {project:$project} else {} end)
+                 + (if $domain != "" then {domain:$domain} else {} end)')"
+            path=/record/pattern
+            ;;
+        observation)
+            : "${_ARGS[id]:?--id required}"
+            : "${_ARGS[project]:?--project required}"
+            : "${_ARGS[tool]:?--tool required}"
+            : "${_ARGS[category]:?--category required}"
+            : "${_ARGS[content]:?--content required}"
+            local tags_json; tags_json="$(_split_csv_to_json_array "${_ARGS[tags]:-}")"
+            body="$("$JQ" -nc \
+                --arg id "${_ARGS[id]}" \
+                --arg project "${_ARGS[project]}" \
+                --arg tool "${_ARGS[tool]}" \
+                --arg category "${_ARGS[category]}" \
+                --arg content "${_ARGS[content]}" \
+                --arg resolution "${_ARGS[resolution]:-}" \
+                --argjson tags "$tags_json" \
+                --arg confidence "${_ARGS[confidence]:-0.7}" \
+                '{id:$id, project:$project, tool:$tool, category:$category,
+                  content:$content, tags:$tags, confidence:($confidence|tonumber)}
+                 + (if $resolution != "" then {resolution:$resolution} else {} end)')"
+            path=/record/observation
+            ;;
+        *)
+            _die "unknown record kind: $kind"
+            ;;
+    esac
+
+    local resp
+    if ! resp="$(_post_json "$path" "$body")"; then
+        return 1
+    fi
+    local id; id="$(printf '%s' "$resp" | "$JQ" -r '.id // empty')"
+    printf 'Recorded %s: %s\n' "$kind" "$id"
+}
+
+# ---- main -------------------------------------------------------------------
+
+usage() {
+    cat <<EOF
+cairn — knowledge graph client (HTTP)
+
+Server: $CAIRN_URL
+
+Usage:
+  cairn search "<query>" [--project P] [--tags a,b] [--max N]
+  cairn record session     --id … --project … [--tool …] [--objective …] [--notes …]
+  cairn record decision    --id … --project … --domain … --decision … [--context …] [--reasoning …] [--tags a,b] [--confidence 0.7]
+  cairn record pattern     --id … --description … --steps "step1,step2" [--project …] [--domain …] [--pitfalls a,b] [--tags a,b]
+  cairn record observation --id … --project … --tool … --category … --content … [--resolution …] [--tags a,b]
+  cairn stats
+  cairn health
+  cairn --version | -V
+
+Override server URL:
+  CAIRN_API_URL=http://other:8767 cairn search …
+EOF
+}
+
+main() {
+    local sub="${1:-}"
+    [[ -n "$sub" ]] || { usage; exit 1; }
+    case "$sub" in
+        -h|--help)      usage; exit 0 ;;
+        -V|--version)   shift; cmd_version "$@" ;;
+        health)         shift; cmd_health "$@" ;;
+        stats)          shift; cmd_stats "$@" ;;
+        search)         shift; cmd_search "$@" ;;
+        record)         shift; cmd_record "$@" ;;
+        *)              printf 'cairn: unknown subcommand: %s\n\n' "$sub" >&2; usage; exit 1 ;;
+    esac
+}
+
+main "$@"
