@@ -11,3 +11,4 @@ zsh/local.zsh
 local/
 .borg/
 .borg-project
+.borg/state.json

@@ -22,9 +22,15 @@
 #   SUPABASE_ACCESS_TOKEN SUPABASE_ACCESS_TOKEN Supabase CLI + management API token (for `supabase login`, project linking, db push)
 #   REVEAL_SUPABASE_DB_PASSWORD REVEAL_SUPABASE_DB_PASSWORD  Postgres password for stillpoint-labs/reveal Supabase Cloud project
 #   REVEAL_SUPABASE_ANON_KEY REVEAL_SUPABASE_ANON_KEY     Supabase anon/publishable key for reveal project (safe to expose client-side)
+#   REVEAL_SUPABASE_SERVICE_ROLE_KEY REVEAL_SUPABASE_SERVICE_ROLE_KEY  Supabase service-role key for reveal project (bypasses RLS — used by worker + e2e admin client)
 #   INGLE_SUPABASE_DB_PASSWORD  INGLE_SUPABASE_DB_PASSWORD   Postgres password for stillpoint-labs/ingle  Supabase Cloud project (set via dashboard if forgotten)
 #   SNOWFLAKE_PAT              SNOWFLAKE_PAT                Snowflake programmatic access token for Cortex Code CLI in devcontainers
 #   GH_TOKEN                   (via gh auth token)          GitHub CLI token for devcontainers — read directly from gh, no separate entry needed
+#   FLY_API_TOKEN        FLY_API_TOKEN        Fly.io personal access token — covers all apps on the account
+#   CLOUDFLARE_API_TOKEN CLOUDFLARE_API_TOKEN Cloudflare API token for DNS and Workers management (ingle)
+#   CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_ACCOUNT_ID Cloudflare account ID (ingle)
+#   PORKBUN_API_KEY      PORKBUN_API_KEY      Porkbun domain registrar API key (ingle)
+#   PORKBUN_SECRET_KEY   PORKBUN_SECRET_KEY   Porkbun domain registrar secret key (ingle)
 
 if [[ "$OSTYPE" == darwin* ]]; then
     # Export env var from Keychain only if the entry exists.
@@ -50,8 +56,14 @@ if [[ "$OSTYPE" == darwin* ]]; then
     _keychain_export SUPABASE_ACCESS_TOKEN
     _keychain_export REVEAL_SUPABASE_DB_PASSWORD
     _keychain_export REVEAL_SUPABASE_ANON_KEY
+    _keychain_export REVEAL_SUPABASE_SERVICE_ROLE_KEY
     _keychain_export INGLE_SUPABASE_DB_PASSWORD
     _keychain_export SNOWFLAKE_PAT
+    _keychain_export FLY_API_TOKEN
+    _keychain_export CLOUDFLARE_API_TOKEN
+    _keychain_export CLOUDFLARE_ACCOUNT_ID
+    _keychain_export PORKBUN_API_KEY
+    _keychain_export PORKBUN_SECRET_KEY
     # END _keychain_export block
 
     unfunction _keychain_export
