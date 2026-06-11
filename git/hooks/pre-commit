@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Global pre-commit: scan staged files for secrets, passwords, and API keys.
+# Uses gitleaks when available; falls back to pattern grep.
+# Install gitleaks: brew install gitleaks
+
+set -euo pipefail
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+if [[ -z "$STAGED" ]]; then
+    exit 0
+fi
+
+# ── gitleaks (preferred) ──────────────────────────────────────────────────────
+if command -v gitleaks &>/dev/null; then
+    if ! gitleaks protect --staged --redact --no-banner --log-level warn; then
+        echo ""
+        echo "  ✗ gitleaks detected secrets in staged files."
+        echo "    Review the output above, remove the secrets, then commit again."
+        echo "    To skip (dangerous): git commit --no-verify"
+        echo ""
+        exit 1
+    fi
+    exit 0
+fi
+
+# ── fallback: grep-based pattern scan ────────────────────────────────────────
+# Catches the most common leaks when gitleaks isn't installed.
+# Run `brew install gitleaks` for comprehensive coverage.
+
+FAIL=0
+declare -a MATCHES
+
+while IFS= read -r file; do
+    # Skip binary files
+    if git show ":$file" | file - | grep -q "binary"; then
+        continue
+    fi
+
+    content=$(git show ":$file")
+
+    patterns=(
+        # AWS
+        '(AKIA|ABIA|ACCA|ASIA)[A-Z0-9]{16}'
+        'aws[_-]?secret[_-]?access[_-]?key\s*[:=]\s*["\x27]?[A-Za-z0-9/+=]{40}'
+        # Generic API key / token / secret / password patterns
+        '(api[_-]?key|apikey|api[_-]?secret|auth[_-]?token|access[_-]?token|secret[_-]?key|private[_-]?key)\s*[:=]\s*["\x27][A-Za-z0-9_\-]{16,}'
+        '(password|passwd|pwd)\s*[:=]\s*["\x27][^"\x27\s]{8,}'
+        # Stripe
+        'sk_(live|test)_[A-Za-z0-9]{24,}'
+        'pk_(live|test)_[A-Za-z0-9]{24,}'
+        'rk_(live|test)_[A-Za-z0-9]{24,}'
+        # GitHub
+        'ghp_[A-Za-z0-9]{36}'
+        'github_pat_[A-Za-z0-9_]{82}'
+        # Supabase service-role key (JWT starting with eyJhbGci + long)
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]{80,}'
+        # Generic high-entropy strings assigned to secret-like vars (rough)
+        '(SECRET|TOKEN|KEY|PASS|CREDENTIAL)\s*=\s*["\x27][A-Za-z0-9+/]{32,}["\x27]'
+    )
+
+    for pattern in "${patterns[@]}"; do
+        if echo "$content" | grep -Eiq "$pattern"; then
+            MATCHES+=("$file (pattern: $pattern)")
+            FAIL=1
+            break
+        fi
+    done
+done <<< "$STAGED"
+
+if [[ $FAIL -eq 1 ]]; then
+    echo ""
+    echo "  ✗ Possible secrets detected in staged files:"
+    for m in "${MATCHES[@]}"; do
+        echo "    • $m"
+    done
+    echo ""
+    echo "    Install gitleaks for better coverage: brew install gitleaks"
+    echo "    To skip (dangerous): git commit --no-verify"
+    echo ""
+    exit 1
+fi
+
+exit 0

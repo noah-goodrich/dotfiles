@@ -21,7 +21,10 @@
 #   NEXUS_TOKEN          NEXUS_TOKEN            Nexus artifact repo token
 #   SUPABASE_ACCESS_TOKEN SUPABASE_ACCESS_TOKEN Supabase CLI + management API token (for `supabase login`, project linking, db push)
 #   REVEAL_SUPABASE_DB_PASSWORD REVEAL_SUPABASE_DB_PASSWORD  Postgres password for stillpoint-labs/reveal Supabase Cloud project
+#   REVEAL_SUPABASE_ANON_KEY REVEAL_SUPABASE_ANON_KEY     Supabase anon/publishable key for reveal project (safe to expose client-side)
 #   INGLE_SUPABASE_DB_PASSWORD  INGLE_SUPABASE_DB_PASSWORD   Postgres password for stillpoint-labs/ingle  Supabase Cloud project (set via dashboard if forgotten)
+#   SNOWFLAKE_PAT              SNOWFLAKE_PAT                Snowflake programmatic access token for Cortex Code CLI in devcontainers
+#   GH_TOKEN                   (via gh auth token)          GitHub CLI token for devcontainers — read directly from gh, no separate entry needed
 
 if [[ "$OSTYPE" == darwin* ]]; then
     # Export env var from Keychain only if the entry exists.
@@ -35,6 +38,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
         export "$var_name=$val"
     }
 
+    # BEGIN _keychain_export block
     _keychain_export ANTHROPIC_SDK_KEY
     _keychain_export GOOGLE_API_KEY
     _keychain_export JIRA_API_TOKEN
@@ -45,9 +49,16 @@ if [[ "$OSTYPE" == darwin* ]]; then
     _keychain_export NEXUS_TOKEN
     _keychain_export SUPABASE_ACCESS_TOKEN
     _keychain_export REVEAL_SUPABASE_DB_PASSWORD
+    _keychain_export REVEAL_SUPABASE_ANON_KEY
     _keychain_export INGLE_SUPABASE_DB_PASSWORD
+    _keychain_export SNOWFLAKE_PAT
+    # END _keychain_export block
 
     unfunction _keychain_export
+
+    # gh CLI manages its own keychain entry — read via gh rather than a separate entry.
+    GH_TOKEN=$(gh auth token 2>/dev/null) || GH_TOKEN=""
+    export GH_TOKEN
 
     if [[ -n "$NEXUS_HOST" && -n "$NEXUS_USERNAME" && -n "$NEXUS_TOKEN" ]]; then
         export PIP_INDEX_URL="https://${NEXUS_USERNAME}:${NEXUS_TOKEN}@${NEXUS_HOST}/repository/pypi-internal/simple"

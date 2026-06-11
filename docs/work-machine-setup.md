@@ -86,8 +86,8 @@ What this does on the work machine:
   present; otherwise pulls latest.
 - Re-registers the `noah-local` Claude Code marketplace pointing at `~/dev/claude-plugins`
   (replaces the old path that pointed at `dotfiles/claude/plugins`).
-- Reinstalls all 5 plugins: `dev-tools`, `noah-content-tools`, `noah-strategy`,
-  `noah-writing-voice`, `token-cost`.
+- Reinstalls all 7 noah-local plugins: `borg-collective`, `dev-tools`, `noah-content-tools`,
+  `noah-strategy`, `noah-writing-voice`, `research-tools`, `token-cost`.
 - Merges Claude Code `settings.json` (non-destructive — preserves existing hooks and permissions).
 - Rebuilds the `devcontainer-base:local` Docker image.
 - Reloads `.zshrc` in all open tmux panes.
@@ -109,11 +109,11 @@ grep -i email ~/.config/dotfiles/git/config
 
 # Plugins installed
 claude plugin list
-# Expected: 6 plugins (5 from noah-local + claude-code-setup)
+# Expected: 8 plugins (7 from noah-local + claude-code-setup)
 
 # Marketplace points at the new location
 claude plugin marketplace list
-# Expected: noah-local → Directory (~//dev/claude-plugins)
+# Expected: noah-local → Directory (~/dev/claude-plugins)
 
 # Nexus credentials load correctly (non-empty means keychain worked)
 source ~/.zshrc && echo "${PIP_INDEX_URL:0:30}..."
@@ -136,7 +136,7 @@ claude plugin marketplace add ~/dev/claude-plugins
 Then re-run the plugin installs:
 
 ```bash
-for p in dev-tools noah-content-tools noah-strategy noah-writing-voice token-cost; do
+for p in borg-collective dev-tools noah-content-tools noah-strategy noah-writing-voice research-tools token-cost; do
     claude plugin install "${p}@noah-local"
 done
 ```
@@ -156,3 +156,44 @@ Resolve any conflicts, then run `install.sh`.
 **Docker build fails:**
 
 Non-fatal for day-to-day use. Run `drone up <project>` to rebuild when needed.
+
+---
+
+## Secrets matrix
+
+All secrets are loaded from macOS Keychain by `zsh/secrets.zsh`. The Keychain service name matches
+the env var name in every case. On a fresh work machine, provision only the entries marked
+**provision** below. Do **not** provision personal API keys on a corporate-managed device.
+
+| Env Var | Work machine | Notes |
+|---------|--------------|-------|
+| `ANTHROPIC_SDK_KEY` | **skip** | Claude Code uses Max subscription. Do not put a personal key on a corporate device. |
+| `GOOGLE_API_KEY` | **provision** | Work Google API access. |
+| `JIRA_API_TOKEN` | **provision** | Atlassian Jira API token for work account. |
+| `JIRA_USERNAME` | **provision** | Jira account email (`ngoodrich@ontra.ai`). |
+| `JIRA_URL` | **provision** | Work Jira site (e.g. `https://ontra.atlassian.net`). |
+| `NEXUS_HOST` | **provision** | Nexus hostname — see Step 3 above (`facts.ontra.tools`). |
+| `NEXUS_USERNAME` | **provision** | Nexus artifact repo user token name. |
+| `NEXUS_TOKEN` | **provision** | Nexus artifact repo token. |
+| `SNOWFLAKE_PAT` | **provision** | Snowflake PAT for Cortex Code CLI. Use the work Snowflake account. |
+| `SUPABASE_ACCESS_TOKEN` | **different value** | Provision a work-specific token, not the personal one. |
+| `REVEAL_SUPABASE_DB_PASSWORD` | **skip** | stillpoint-labs/reveal is a personal project. |
+| `REVEAL_SUPABASE_ANON_KEY` | **skip** | stillpoint-labs/reveal — personal project. |
+| `REVEAL_SUPABASE_SERVICE_ROLE_KEY` | **skip** | stillpoint-labs/reveal — personal project (bypasses RLS). |
+| `INGLE_SUPABASE_DB_PASSWORD` | **skip** | stillpoint-labs/ingle — personal project. |
+| `FLY_API_TOKEN` | **skip** | Fly.io personal account; no work apps. |
+| `CLOUDFLARE_API_TOKEN` | **skip** | Cloudflare DNS/Workers for ingle (personal project). |
+| `CLOUDFLARE_ACCOUNT_ID` | **skip** | Cloudflare account ID (ingle, personal). |
+| `PORKBUN_API_KEY` | **skip** | Porkbun domain registrar (ingle, personal). |
+| `PORKBUN_SECRET_KEY` | **skip** | Porkbun domain registrar (ingle, personal). |
+
+### Cairn knowledge graph (optional)
+
+Cairn is the optional PostgreSQL + pgvector knowledge persistence layer used by borg. On the work
+machine, cairn runs without its LLM legs — debrief summarization is a no-op, but knowledge storage
+and vector search still work.
+
+| Secret | Work machine | Notes |
+|--------|--------------|-------|
+| `cairn-anthropic-key` (Keychain) | **skip** | Unset = cairn LLM legs disabled. Intended work-machine state. |
+| Cairn Postgres password | **provision** | Set via `POSTGRES_PASSWORD` in cairn's compose file. Work-specific value. |
