@@ -1,0 +1,142 @@
+#!/usr/bin/env zsh
+# cairn-extract — idempotent runner: process cairn-inbox .md files through
+# cairn backfill → backfill-commit → re-embed, then move each file to done/.
+#
+# Inbox:  ~/.local/state/borg/cairn-inbox/<project>/<ts>.md
+# Done:   ~/.local/state/borg/cairn-inbox/<project>/done/<ts>.md
+# Log:    ~/.local/state/borg/cairn-inbox/cairn-extract.log
+#
+# IDEMPOTENCY: Each file is processed exactly once. After ALL three steps
+# succeed, the .md is moved to done/. A second cairn-extract run skips it.
+# The cairn DB uses ON CONFLICT DO NOTHING on all insert paths, so even if a
+# file somehow appears twice, no duplicate or error results.
+#
+# cairn-DOWN SAFETY: if localhost:8767/ready is not "ready", ALL inbox files
+# are left untouched and the script exits 0. The next run (hook or nightly
+# launchd) will retry.
+#
+# CONTAINER HANDOFF: drone exec cairn runs inside the devcontainer, which
+# bind-mounts /Users/noah/dev/cairn as /workspace. Files are copied into
+# /workspace/backfill-input/<project>-inbox/<stem>/ before backfill and
+# cleaned up after commit.
+
+set -uo pipefail
+
+PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin${PATH:+:$PATH}"
+export PATH
+
+INBOX_ROOT="${HOME}/.local/state/borg/cairn-inbox"
+LOG="${INBOX_ROOT}/cairn-extract.log"
+CAIRN_READY_URL="${CAIRN_READY_URL:-http://localhost:8767/ready}"
+CAIRN_WORKSPACE="${CAIRN_WORKSPACE:-/Users/noah/dev/cairn}"
+TOOL="${CAIRN_EXTRACT_TOOL:-claude-code}"
+
+# ── logging ──────────────────────────────────────────────────────────────────
+mkdir -p "${INBOX_ROOT}"
+_log() {
+    printf '[%s] %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$*" | tee -a "${LOG}"
+}
+
+# ── cairn liveness check ─────────────────────────────────────────────────────
+_cairn_ready() {
+    local _ready_status _jq
+    _jq=$(command -v jq 2>/dev/null || true)
+    [[ -z "${_jq}" ]] && return 1
+    _ready_status=$(curl -fsS --max-time 4 "${CAIRN_READY_URL}" 2>/dev/null \
+        | "${_jq}" -r '.status // "unknown"' 2>/dev/null || true)
+    [[ "${_ready_status}" == "ready" ]]
+}
+
+if ! _cairn_ready; then
+    _log "cairn not ready at ${CAIRN_READY_URL} — leaving inbox untouched, exiting 0"
+    exit 0
+fi
+
+# ── scan inbox dirs ───────────────────────────────────────────────────────────
+_any_processed=0
+_any_failed=0
+
+for project_dir in "${INBOX_ROOT}"/*/; do
+    [[ -d "${project_dir}" ]] || continue
+    project="${project_dir%/}"
+    project="${project##*/}"
+
+    # collect .md files at top level of this project dir (not in done/)
+    # Use N glob modifier so an empty match produces no error in zsh
+    md_files=( "${project_dir}"*.md(N) )
+    [[ ${#md_files[@]} -eq 0 ]] && continue
+
+    _log "project=${project}: ${#md_files[@]} file(s) to process"
+
+    # Workspace staging dirs (visible inside devcontainer as /workspace/...)
+    ws_raw="${CAIRN_WORKSPACE}/backfill-input/${project}-inbox"
+    ws_cands="${CAIRN_WORKSPACE}/backfill-input/${project}-inbox-candidates"
+    # Container-side equivalents
+    ctr_raw="/workspace/backfill-input/${project}-inbox"
+    ctr_cands="/workspace/backfill-input/${project}-inbox-candidates"
+
+    # Process files one at a time so failures are per-file
+    for md_file in "${md_files[@]}"; do
+        [[ -f "${md_file}" ]] || continue
+        stem="${md_file:t:r}"
+        done_dir="${project_dir}done"
+        mkdir -p "${done_dir}" "${ws_raw}" "${ws_cands}"
+
+        # Drop candidate artifacts from any previous partial run
+        # Use N glob modifier in zsh to avoid error when directory is empty
+        rm -rf "${ws_cands:?}"/*.yaml(N) "${ws_cands:?}"/*.yml(N) 2>/dev/null || true
+
+        _log "  [${stem}] copying to workspace staging"
+        cp "${md_file}" "${ws_raw}/${stem}.md"
+
+        # Step 1: backfill — LLM extracts candidates → YAML in ws_cands
+        _log "  [${stem}] running backfill (LLM extraction)"
+        if ! drone exec cairn -- cairn backfill \
+                --raw-dir "${ctr_raw}" \
+                --project "${project}" \
+                --candidates-dir "${ctr_cands}" \
+                --tool "${TOOL}" >> "${LOG}" 2>&1; then
+            _log "  [${stem}] WARN: backfill failed — leaving in inbox"
+            rm -f "${ws_raw}/${stem}.md"
+            _any_failed=1
+            continue
+        fi
+
+        # Step 2: backfill-commit — YAML → DB (ON CONFLICT DO NOTHING absorbs dups)
+        _log "  [${stem}] running backfill-commit"
+        if ! drone exec cairn -- cairn backfill-commit \
+                --candidates-dir "${ctr_cands}" \
+                --no-backup >> "${LOG}" 2>&1; then
+            _log "  [${stem}] WARN: backfill-commit failed — leaving in inbox"
+            rm -f "${ws_raw}/${stem}.md"
+            _any_failed=1
+            continue
+        fi
+
+        # Clean up workspace staging for this file
+        rm -f "${ws_raw}/${stem}.md"
+        rm -rf "${ws_cands:?}"/*.yaml(N) "${ws_cands:?}"/*.yml(N) 2>/dev/null || true
+
+        _log "  [${stem}] committed — moving to done/"
+        mv "${md_file}" "${done_dir}/${stem}.md"
+        _any_processed=1
+    done
+
+    # Remove workspace staging dirs if empty
+    rmdir "${ws_raw}" 2>/dev/null || true
+    rmdir "${ws_cands}" 2>/dev/null || true
+done
+
+# Step 3: re-embed once after all projects are committed (amortises embedding cost)
+if [[ ${_any_processed} -eq 1 ]]; then
+    _log "running re-embed to index new records"
+    if ! drone exec cairn -- cairn re-embed --no-backup >> "${LOG}" 2>&1; then
+        _log "WARN: re-embed failed (non-fatal; embeddings will catch up next run)"
+    fi
+fi
+
+if [[ ${_any_processed} -eq 0 && ${_any_failed} -eq 0 ]]; then
+    _log "inbox empty — nothing to do"
+fi
+
+[[ ${_any_failed} -eq 0 ]]

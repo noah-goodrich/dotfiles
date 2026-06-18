@@ -31,6 +31,9 @@
 #   CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_ACCOUNT_ID Cloudflare account ID (ingle)
 #   PORKBUN_API_KEY      PORKBUN_API_KEY      Porkbun domain registrar API key (ingle)
 #   PORKBUN_SECRET_KEY   PORKBUN_SECRET_KEY   Porkbun domain registrar secret key (ingle)
+#   PLAID_CLIENT_ID      PLAID_CLIENT_ID      Plaid client_id for the Troth team (shared across envs)
+#   PLAID_SECRET         PLAID_SECRET         Plaid Sandbox secret for the Troth team (per-environment)
+#   PLAID_TOKEN_ENCRYPTION_KEY PLAID_TOKEN_ENCRYPTION_KEY  Key that encrypts Plaid access tokens at rest (troth.plaid_items) — generate once, never rotate carelessly
 
 if [[ "$OSTYPE" == darwin* ]]; then
     # Export env var from Keychain only if the entry exists.
@@ -64,9 +67,15 @@ if [[ "$OSTYPE" == darwin* ]]; then
     _keychain_export CLOUDFLARE_ACCOUNT_ID
     _keychain_export PORKBUN_API_KEY
     _keychain_export PORKBUN_SECRET_KEY
+    _keychain_export PLAID_CLIENT_ID
+    _keychain_export PLAID_SECRET
+    _keychain_export PLAID_TOKEN_ENCRYPTION_KEY
     # END _keychain_export block
 
     unfunction _keychain_export
+
+    # Plaid environment (non-secret). Sandbox until Production is ready.
+    export PLAID_ENV="${PLAID_ENV:-sandbox}"
 
     # gh CLI manages its own keychain entry — read via gh rather than a separate entry.
     GH_TOKEN=$(gh auth token 2>/dev/null) || GH_TOKEN=""
