@@ -232,6 +232,68 @@ cmd_record() {
     printf 'Recorded %s: %s\n' "$kind" "$id"
 }
 
+# ---- presence subcommand ----------------------------------------------------
+# Thin transport for the /presence/* REST endpoints. Used by borg-link-down.sh
+# (SessionStart: open + related) and borg-link-up.sh (Stop: close).
+# Strictly no business logic here — just argument parsing + HTTP plumbing.
+
+_PRESENCE_LINE_JQ='if .count == 0 then ""
+elif (.closest.shared_path // "") != "" then
+  "▸ \(.count) other active session\(if .count == 1 then "" else "s" end) — closest: session \(.closest.session_id[:8]) editing \(.closest.shared_path) in \(.project)"
+else
+  "▸ \(.count) other active session\(if .count == 1 then "" else "s" end) in \(.project) — closest: session \(.closest.session_id[:8]) (\(.closest.objective // "no objective set"))"
+end'
+
+cmd_presence() {
+    local sub="${1:-}"
+    [[ -n "$sub" ]] || _die "presence requires a subcommand: open|close|related"
+    shift
+    _collect_kv "$@"
+
+    case "$sub" in
+        open)
+            : "${_ARGS[session-id]:?--session-id required}"
+            : "${_ARGS[project]:?--project required}"
+            local paths_json body
+            paths_json="$(_split_csv_to_json_array "${_ARGS[paths]:-}")"
+            body="$("$JQ" -nc \
+                --arg session_id "${_ARGS[session-id]}" \
+                --arg project "${_ARGS[project]}" \
+                --arg branch "${_ARGS[branch]:-}" \
+                --arg objective "${_ARGS[objective]:-}" \
+                --arg tool "${_ARGS[tool]:-claude-code}" \
+                --argjson touched_paths "$paths_json" \
+                '{session_id:$session_id, project:$project, tool:$tool, touched_paths:$touched_paths}
+                 + (if $branch != "" then {branch:$branch} else {} end)
+                 + (if $objective != "" then {objective:$objective} else {} end)')"
+            _post_json /presence/open "$body" >/dev/null
+            ;;
+        close)
+            : "${_ARGS[session-id]:?--session-id required}"
+            local body
+            body="$("$JQ" -nc --arg session_id "${_ARGS[session-id]}" '{session_id:$session_id}')"
+            _post_json /presence/close "$body" >/dev/null
+            ;;
+        related)
+            : "${_ARGS[session-id]:?--session-id required}"
+            : "${_ARGS[project]:?--project required}"
+            local fmt="${_ARGS[format]:-json}"
+            local qstr resp
+            qstr="?session_id=$(_url_encode "${_ARGS[session-id]}")&project=$(_url_encode "${_ARGS[project]}")"
+            [[ -n "${_ARGS[paths]:-}" ]] && qstr+="&paths=$(_url_encode "${_ARGS[paths]}")"
+            resp="$(_get "/presence/related${qstr}")"
+            if [[ "$fmt" == "line" ]]; then
+                printf '%s' "$resp" | "$JQ" -r "$_PRESENCE_LINE_JQ"
+            else
+                printf '%s\n' "$resp"
+            fi
+            ;;
+        *)
+            _die "presence: unknown subcommand: $sub"
+            ;;
+    esac
+}
+
 # ---- main -------------------------------------------------------------------
 
 usage() {
@@ -246,6 +308,9 @@ Usage:
   cairn record decision    --id … --project … --domain … --decision … [--context …] [--reasoning …] [--tags a,b] [--confidence 0.7]
   cairn record pattern     --id … --description … --steps "step1,step2" [--project …] [--domain …] [--pitfalls a,b] [--tags a,b]
   cairn record observation --id … --project … --tool … --category … --content … [--resolution …] [--tags a,b]
+  cairn presence open      --session-id … --project … [--branch …] [--paths a,b,c] [--objective …] [--tool …]
+  cairn presence close     --session-id …
+  cairn presence related   --session-id … --project … [--paths a,b,c] [--format line|json]
   cairn stats
   cairn health
   cairn --version | -V
@@ -265,6 +330,7 @@ main() {
         stats)          shift; cmd_stats "$@" ;;
         search)         shift; cmd_search "$@" ;;
         record)         shift; cmd_record "$@" ;;
+        presence)       shift; cmd_presence "$@" ;;
         *)              printf 'cairn: unknown subcommand: %s\n\n' "$sub" >&2; usage; exit 1 ;;
     esac
 }
