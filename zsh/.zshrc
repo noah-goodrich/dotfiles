@@ -81,6 +81,12 @@ export PATH="/opt/homebrew/bin:$PATH"      # Homebrew (macOS)
 export PATH="$HOME/.local/bin:$HOME/.claude/bin:$PATH"
 export PATH="$HOME/.config/dotfiles/zsh/bin:$PATH"   # dotfiles-shipped scripts (e.g. cairn client)
 
+# Stop Claude Code's auto-updater. Each update installs to a NEW path, so macOS TCC sees a
+# new app identity and re-prompts for "access data from other apps" — and any Full Disk Access
+# grant is bound to the old identity, so it never sticks. Durable home is here (not settings.json,
+# which the Claude installer clobbers). To repair a machine after an update: run claude-tcc-heal.
+export DISABLE_AUTOUPDATER=1
+
 
 # =============================================================================
 # ALIASES

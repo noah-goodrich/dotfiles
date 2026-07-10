@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+#
+# claude-tcc-heal — stop the recurring macOS "wants to access data from other apps" (TCC) popup.
+#
+# ROOT CAUSE
+#   Claude Code's auto-updater installs each version to a NEW path. macOS TCC keys permission
+#   grants to an app's identity, so every update looks like a brand-new app and re-prompts —
+#   and whatever Full Disk Access you granted was bound to the previous (now-gone) identity, so
+#   it never carries forward.
+#
+# THE FIX (two parts)
+#   1. DISABLE_AUTOUPDATER=1  — exported from dotfiles .zshrc; stops future version churn.
+#   2. Pin ~/.local/bin/claude at a STABLE ClaudeCode.app bundle whose binary is a HARD LINK to
+#      the current version under versions/. A stable path == a stable TCC identity, so the Full
+#      Disk Access grant finally sticks.
+#
+# This script does part 2 (and re-does it after any manual `claude update`). It is idempotent:
+# safe to run any number of times. It only ever moves a symlink and refreshes one hard link —
+# nothing destructive.
+#
+# AFTER RUNNING: grant Full Disk Access ONCE to ~/.local/share/claude/ClaudeCode.app in
+# System Settings > Privacy & Security > Full Disk Access, then open a fresh shell.
+
+set -euo pipefail
+
+share="$HOME/.local/share/claude"
+versions="$share/versions"
+bundle="$share/ClaudeCode.app/Contents/MacOS/claude"
+link="$HOME/.local/bin/claude"
+
+die() { printf 'claude-tcc-heal: %s\n' "$1" >&2; exit 1; }
+
+[[ "$(uname)" == "Darwin" ]] || die "macOS only (TCC is an Apple thing)."
+[[ -d "$versions" ]] || die "no $versions — expected the native Claude Code install layout."
+
+# Pick the newest version binary (version-sorted).
+current="$(ls -1 "$versions" 2>/dev/null | sort -V | tail -1)"
+[[ -n "$current" ]] || die "no version binaries found in $versions."
+src="$versions/$current"
+[[ -x "$src" ]] || die "$src is not an executable file."
+
+mkdir -p "$(dirname "$bundle")"
+
+# (Re)establish the stable bundle binary as a HARD LINK to the current version.
+# Hard link — not symlink — so the stable path is itself a real Mach-O with a fixed identity.
+if [[ -e "$bundle" && "$(stat -f %i "$bundle")" == "$(stat -f %i "$src")" ]]; then
+    echo "stable bundle already at current version ($current)"
+else
+    ln -f "$src" "$bundle"
+    echo "linked stable bundle  ->  version $current"
+fi
+
+# Point the launcher symlink at the stable bundle.
+mkdir -p "$(dirname "$link")"
+if [[ "$(readlink "$link" 2>/dev/null || true)" == "$bundle" ]]; then
+    echo "launcher symlink already stable ($link)"
+else
+    ln -sf "$bundle" "$link"
+    echo "repointed launcher    ->  $bundle"
+fi
+
+cat <<EOF
+
+Done. Two things to finish, ONCE, on this machine:
+  1. System Settings > Privacy & Security > Full Disk Access
+     -> add / enable:  $share/ClaudeCode.app
+  2. Open a fresh shell so DISABLE_AUTOUPDATER=1 takes effect (kills future churn).
+
+After this the grant sticks and the popup stops.
+EOF
