@@ -78,6 +78,10 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export PLAID_ENV="${PLAID_ENV:-sandbox}"
 
     # gh CLI manages its own keychain entry — read via gh rather than a separate entry.
+    # gh auth token echoes an already-set GH_TOKEN, so a stale value would perpetuate itself
+    # across re-sources; unset first so we always read the current keyring token (picks up scope
+    # refreshes like `gh auth refresh -s workflow`).
+    unset GH_TOKEN
     GH_TOKEN=$(gh auth token 2>/dev/null) || GH_TOKEN=""
     export GH_TOKEN
 
