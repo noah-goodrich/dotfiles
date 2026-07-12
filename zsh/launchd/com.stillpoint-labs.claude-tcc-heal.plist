@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  com.stillpoint-labs.claude-tcc-heal — self-heals the Claude Code launcher (zsh/bin/claude-tcc-heal)
+  whenever Claude Code's updater touches its versions/ directory or the ~/.local/bin/claude
+  launcher goes dangling. See zsh/bin/claude-tcc-heal for the full root-cause writeup.
+
+  Install (one time per machine):
+    cp ~/.config/dotfiles/zsh/launchd/com.stillpoint-labs.claude-tcc-heal.plist \
+       ~/Library/LaunchAgents/com.stillpoint-labs.claude-tcc-heal.plist
+    launchctl bootstrap gui/$(id -u) \
+       ~/Library/LaunchAgents/com.stillpoint-labs.claude-tcc-heal.plist
+
+  Paths below are hardcoded to this machine's single-user layout (matches the other
+  com.stillpoint-labs.borg.* agents) rather than templated — there is no install-time
+  substitution step in this repo yet.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.stillpoint-labs.claude-tcc-heal</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/noah/.config/dotfiles/zsh/bin/claude-tcc-heal</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>WatchPaths</key>
+    <array>
+        <string>/Users/noah/.local/share/claude/versions</string>
+        <string>/Users/noah/.local/bin/claude</string>
+    </array>
+    <key>StandardOutPath</key>
+    <string>/Users/noah/Library/Logs/claude-tcc-heal.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/noah/Library/Logs/claude-tcc-heal.stderr.log</string>
+</dict>
+</plist>
