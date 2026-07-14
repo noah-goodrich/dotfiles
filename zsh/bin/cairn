@@ -132,7 +132,7 @@ _split_csv_to_json_array() {
 
 cmd_record() {
     local kind="${1:-}"
-    [[ -n "$kind" ]] || _die "record requires a kind: session|decision|pattern|observation"
+    [[ -n "$kind" ]] || _die "record requires a kind: session|decision|pattern|observation|document"
     shift
     _collect_kv "$@"
 
@@ -218,6 +218,23 @@ cmd_record() {
                   content:$content, tags:$tags, confidence:($confidence|tonumber)}
                  + (if $resolution != "" then {resolution:$resolution} else {} end)')"
             path=/record/observation
+            ;;
+        document)
+            : "${_ARGS[source]:?--source required}"
+            : "${_ARGS[doc-type]:?--doc-type required}"
+            : "${_ARGS[project]:?--project required}"
+            : "${_ARGS[slug]:?--slug required}"
+            : "${_ARGS[body]:?--body required}"
+            body="$("$JQ" -nc \
+                --arg source "${_ARGS[source]}" \
+                --arg doc_type "${_ARGS[doc-type]}" \
+                --arg project "${_ARGS[project]}" \
+                --arg slug "${_ARGS[slug]}" \
+                --arg bodytext "${_ARGS[body]}" \
+                --arg title "${_ARGS[title]:-}" \
+                '{source:$source, doc_type:$doc_type, project:$project, slug:$slug, body:$bodytext}
+                 + (if $title != "" then {title:$title} else {} end)')"
+            path=/record/document
             ;;
         *)
             _die "unknown record kind: $kind"
