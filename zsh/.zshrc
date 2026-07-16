@@ -87,6 +87,11 @@ export PATH="$HOME/.config/dotfiles/zsh/bin:$PATH"   # dotfiles-shipped scripts 
 # which the Claude installer clobbers). To repair a machine after an update: run claude-tcc-heal.
 export DISABLE_AUTOUPDATER=1
 
+# Stable git worktree for the shared local Supabase stack config (kept on main),
+# so the always-on shared stack's pre-up hook always restarts from a correct
+# config regardless of what branch the working checkout is on.
+export BORG_STILLPOINT_SUPABASE_DIR="$HOME/.local/state/borg/shared-supabase/stillpoint"
+
 
 # =============================================================================
 # ALIASES
