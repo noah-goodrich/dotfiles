@@ -75,6 +75,20 @@ install_deps() {
         fi
     fi
 
+    # tree-sitter CLI — required by nvim-treesitter (main branch) to compile
+    # parsers. Homebrew's `tree-sitter` formula is library-only; the CLI binary
+    # lives in the separate `tree-sitter-cli` formula.
+    if ! command -v tree-sitter &>/dev/null; then
+        warn "tree-sitter CLI not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install tree-sitter-cli
+        elif command -v cargo &>/dev/null; then
+            cargo install tree-sitter-cli
+        else
+            warn "  Install tree-sitter CLI manually (no brew/cargo): npm i -g tree-sitter-cli"
+        fi
+    fi
+
     # Powerlevel10k
     if [ ! -d "$HOME/.config/zsh/powerlevel10k" ]; then
         info "Installing Powerlevel10k..."
