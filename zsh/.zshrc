@@ -152,3 +152,4 @@ alias tn="tmux new -s"
 
 # Cortex CLI completion (disable via /settings in cortex)
 [[ -s ~/.zsh/completions/cortex.zsh ]] && source ~/.zsh/completions/cortex.zsh
+[[ -f /workspace/.venv/bin/activate ]] && source /workspace/.venv/bin/activate
