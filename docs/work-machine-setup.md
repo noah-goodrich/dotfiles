@@ -21,6 +21,23 @@ The work machine identity is `ngoodrich@ontra.ai`. Personal machine uses `goodri
 
 ---
 
+## Update to latest
+
+If you've already set up this machine and just need to sync to the latest versions of all
+components (dotfiles, cairn, and borg plugin):
+
+```bash
+# dotfiles + launchd agents (incl. dev-postgres auto-start)
+cd ~/.config/dotfiles && git pull && bash install.sh
+# cairn service (DB resilience)
+cd ~/dev/cairn && git pull && ./bin/cairn-up
+# borg plugin (cairn heartbeat + link callouts)
+cd ~/dev/claude-plugins && git pull && claude plugin install borg-collective@noah-local
+# then restart Claude Code so the rebuilt plugin loads
+```
+
+---
+
 ## Steps
 
 ### 1. Pull latest dotfiles
