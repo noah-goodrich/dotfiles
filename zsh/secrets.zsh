@@ -77,6 +77,14 @@ if [[ "$OSTYPE" == darwin* ]]; then
     # Plaid environment (non-secret). Sandbox until Production is ready.
     export PLAID_ENV="${PLAID_ENV:-sandbox}"
 
+    # Snowflake PAT env aliases (keeps the PAT out of ~/.snowflake/connections.toml).
+    # SNOWFLAKE_PAT (above) is the keychain-backed source; Cortex reads SNOWFLAKE_TOKEN,
+    # the snow CLI reads the connection-scoped var. Guarded so we never export an empty value.
+    if [[ -n "$SNOWFLAKE_PAT" ]]; then
+        export SNOWFLAKE_TOKEN="$SNOWFLAKE_PAT"
+        export SNOWFLAKE_CONNECTIONS_RBAC_AUDIT_TOKEN="$SNOWFLAKE_PAT"
+    fi
+
     # gh CLI manages its own keychain entry — read via gh rather than a separate entry.
     # gh auth token echoes an already-set GH_TOKEN, so a stale value would perpetuate itself
     # across re-sources; unset first so we always read the current keyring token (picks up scope
