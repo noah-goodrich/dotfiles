@@ -37,6 +37,20 @@ git config --global user.email "your@email.com"
 The `devcontainer.json` dotfiles integration will clone this repo and run
 `install.sh` automatically on container creation. No manual steps needed.
 
+## Background services (launchd)
+
+`zsh/launchd/*.plist` holds macOS LaunchAgents that keep host-level state healthy without a human
+running a recovery command. `install.sh` symlinks each one into `~/Library/LaunchAgents/` and
+bootstraps it via `launchctl` (see `install_launchd_agents`), so a fresh install registers them
+automatically; re-running `install.sh` is safe and just reloads them.
+
+| Agent | What it does |
+|-------|--------------|
+| `com.stillpoint-labs.claude-tcc-heal` | Re-anchors the Claude Code launcher so macOS TCC grants and the `claude` binary survive updater churn. |
+| `com.stillpoint-labs.dev-postgres-autostart` | Ensures the shared local Postgres dev container (`devcontainer/docker-compose.postgres.yml`) is running — recovers it even after a full removal (e.g. `docker system prune`), not just a restart. Runs at login and periodically; waits for the Docker daemon and is a no-op if the container is already up. |
+
+Logs for each agent land in `~/Library/Logs/<label>.std{out,err}.log`.
+
 ## Key bindings summary
 
 ### tmux (prefix: Ctrl+Space)

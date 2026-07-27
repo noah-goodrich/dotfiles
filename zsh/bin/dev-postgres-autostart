@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+#
+# dev-postgres-autostart — make sure the shared local Postgres container is up.
+#
+# WHY
+#   docker-compose.postgres.yml already sets `restart: unless-stopped`, which
+#   recovers from a normal Docker restart — but it CANNOT resurrect a container
+#   that was fully REMOVED (e.g. `docker system prune`, `compose down`, or a
+#   Docker Desktop backend reset). Nothing re-creates it in that case unless
+#   something runs `compose up` again.
+#
+#   This script is that something. It is meant to run on login and whenever
+#   the Docker daemon comes up (see the com.stillpoint-labs.dev-postgres-autostart
+#   launchd agent in zsh/launchd/), so the container comes back on its own
+#   with no human running a recovery command.
+#
+# SAFETY
+#   - Idempotent: `compose up -d` on an already-running/healthy stack is a
+#     no-op. Safe to run any number of times, including while the container is
+#     actively serving traffic.
+#   - `-p devcontainer` is REQUIRED: it is the compose project name that owns
+#     the existing named volume `devcontainer_dev-postgres-data`. Omitting it
+#     (or using a different name) would create a NEW empty volume instead of
+#     attaching the real data — i.e. apparent data loss. Do not change this.
+#   - Waits/retries for the Docker daemon to actually be reachable before
+#     trying to run compose, since launchd can fire before Docker Desktop has
+#     finished starting. Bounded retries — this never spins forever.
+
+set -euo pipefail
+
+compose_file="$HOME/.config/dotfiles/devcontainer/docker-compose.postgres.yml"
+project_name="devcontainer"
+max_wait_secs=120
+poll_interval_secs=3
+
+log() { printf 'dev-postgres-autostart: %s\n' "$1"; }
+
+[[ -f "$compose_file" ]] || { log "compose file not found: $compose_file"; exit 1; }
+
+# Wait (bounded) for the Docker daemon to be reachable.
+elapsed=0
+until docker info &>/dev/null; do
+    if (( elapsed >= max_wait_secs )); then
+        log "Docker daemon not reachable after ${max_wait_secs}s — giving up for this run."
+        exit 1
+    fi
+    sleep "$poll_interval_secs"
+    elapsed=$((elapsed + poll_interval_secs))
+done
+
+log "Docker daemon reachable — ensuring dev-postgres is up (project: $project_name)"
+docker compose -p "$project_name" -f "$compose_file" up -d
+log "done."
