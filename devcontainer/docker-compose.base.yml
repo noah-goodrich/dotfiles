@@ -39,7 +39,13 @@ x-dotfile-volumes: &dotfile-volumes
   - /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock
 
   # --- claude code ---
-  - ~/.claude:/home/dev/.claude:cached
+  # Host-first Claude: ~/.claude is NOT mounted into the container. Claude Code
+  # runs on the HOST; the container is only a `drone exec` dispatch target (see
+  # borg-collective's supabase-shared template and per-project CLAUDE.md
+  # "Running things" sections). Mounting the full ~/.claude dir here used to
+  # propagate every host write (session transcripts under projects/, history.jsonl,
+  # token-spend.jsonl — all high-churn) into the container's VirtioFS mount,
+  # amplifying Docker Desktop's fs-event-storm crashes across every running drone.
   - ~/.config/borg:/home/dev/.config/borg:cached
   # ~/.claude.json and ~/.mcp.json are NOT bind-mounted as files — Claude Code atomically
   # replaces them (write-then-rename), which orphans Docker single-file bind mounts.
