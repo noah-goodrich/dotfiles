@@ -79,7 +79,7 @@ source "${ZDOTDIR:-$HOME/.config/dotfiles/zsh}/secrets.zsh"
 # PATH additions
 export PATH="/opt/homebrew/bin:$PATH"      # Homebrew (macOS)
 export PATH="$HOME/.local/bin:$HOME/.claude/bin:$PATH"
-export PATH="$HOME/.config/dotfiles/zsh/bin:$PATH"   # dotfiles-shipped scripts (e.g. cairn client)
+export PATH="$HOME/.config/dotfiles/zsh/bin:$PATH"   # dotfiles-shipped scripts (e.g. ducky)
 
 # Stop Claude Code's auto-updater. Each update installs to a NEW path, so macOS TCC sees a
 # new app identity and re-prompts for "access data from other apps" — and any Full Disk Access
