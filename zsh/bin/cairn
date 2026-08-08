@@ -83,7 +83,7 @@ cmd_stats() {
 }
 
 cmd_search() {
-    local query="" project="" tags="" max="10"
+    local query="" project="" tags="" max="10" session_id=""
     [[ $# -gt 0 ]] || _die "search requires a query"
     query="$1"; shift
     while [[ $# -gt 0 ]]; do
@@ -94,6 +94,8 @@ cmd_search() {
             --tags=*) tags="${1#*=}"; shift ;;
             --max) max="$2"; shift 2 ;;
             --max=*) max="${1#*=}"; shift ;;
+            --session-id) session_id="$2"; shift 2 ;;
+            --session-id=*) session_id="${1#*=}"; shift ;;
             *) shift ;;
         esac
     done
@@ -101,6 +103,11 @@ cmd_search() {
     qstr="?q=$(_url_encode "$query")&max=${max}"
     [[ -n "$project" ]] && qstr+="&project=$(_url_encode "$project")"
     [[ -n "$tags" ]]    && qstr+="&tags=$(_url_encode "$tags")"
+    # Usage-ledger attribution key. Without it call_log.session_id is NULL and no retrieval can be
+    # joined to the session that received it. Note the catch-all `*) shift` above silently discards
+    # unknown flags, so a caller passing --session-id to a shim that lacks this case would appear to
+    # work while dropping the value — hence both shim copies must carry it.
+    [[ -n "$session_id" ]] && qstr+="&session_id=$(_url_encode "$session_id")"
     _get "/search${qstr}" "text/plain"
     printf '\n'
 }
@@ -320,7 +327,7 @@ cairn — knowledge graph client (HTTP)
 Server: $CAIRN_URL
 
 Usage:
-  cairn search "<query>" [--project P] [--tags a,b] [--max N]
+  cairn search "<query>" [--project P] [--tags a,b] [--max N] [--session-id SID]
   cairn record session     --id … --project … [--tool …] [--objective …] [--notes …]
   cairn record decision    --id … --project … --domain … --decision … [--context …] [--reasoning …] [--tags a,b] [--confidence 0.7]
   cairn record pattern     --id … --description … --steps "step1,step2" [--project …] [--domain …] [--pitfalls a,b] [--tags a,b]

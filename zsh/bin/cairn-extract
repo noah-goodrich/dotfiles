@@ -11,9 +11,11 @@
 # The cairn DB uses ON CONFLICT DO NOTHING on all insert paths, so even if a
 # file somehow appears twice, no duplicate or error results.
 #
-# cairn-DOWN SAFETY: if localhost:8767/ready is not "ready", ALL inbox files
-# are left untouched and the script exits 0. The next run (hook or nightly
-# launchd) will retry.
+# cairn-DOWN SAFETY: if localhost:8767/ready is not "ready", the script waits
+# up to CAIRN_READY_WAIT_S (default 600) for it to come up, polling every
+# CAIRN_READY_POLL_S. Only if it never becomes ready are ALL inbox files left
+# untouched and the script exits 0. The next run (hook or nightly launchd)
+# will retry.
 #
 # CONTAINER HANDOFF: drone exec cairn runs inside the devcontainer, which
 # bind-mounts /Users/noah/dev/cairn as /workspace. Files are copied into
@@ -28,6 +30,10 @@ export PATH
 INBOX_ROOT="${HOME}/.local/state/borg/cairn-inbox"
 LOG="${INBOX_ROOT}/cairn-extract.log"
 CAIRN_READY_URL="${CAIRN_READY_URL:-http://localhost:8767/ready}"
+# Total seconds to wait for cairn to come up before giving up (see _wait_for_cairn below), and the
+# gap between probes. Set CAIRN_READY_WAIT_S=0 to restore the old single-probe behaviour.
+CAIRN_READY_WAIT_S="${CAIRN_READY_WAIT_S:-600}"
+CAIRN_READY_POLL_S="${CAIRN_READY_POLL_S:-15}"
 CAIRN_WORKSPACE="${CAIRN_WORKSPACE:-/Users/noah/dev/cairn}"
 TOOL="${CAIRN_EXTRACT_TOOL:-claude-code}"
 
@@ -38,6 +44,13 @@ _log() {
 }
 
 # ── cairn liveness check ─────────────────────────────────────────────────────
+# A BOUNDED WAIT, not a single probe. The launchd job is scheduled for 03:00 local; when the
+# machine is asleep at that hour launchd fires it on wake instead, and Docker Desktop is usually
+# still starting at that exact moment. A single 4-second curl loses the whole night's mining to
+# that race — and loses it SILENTLY, because exiting 0 is the correct cairn-down behaviour.
+# Three consecutive runs (2026-08-02/03/04) exited this way and went unnoticed for three days.
+# Polling makes the job schedule-agnostic: it no longer matters when launchd fires it, only that
+# cairn comes up within the window.
 _cairn_ready() {
     local _ready_status _jq
     _jq=$(command -v jq 2>/dev/null || true)
@@ -47,8 +60,23 @@ _cairn_ready() {
     [[ "${_ready_status}" == "ready" ]]
 }
 
-if ! _cairn_ready; then
-    _log "cairn not ready at ${CAIRN_READY_URL} — leaving inbox untouched, exiting 0"
+_wait_for_cairn() {
+    _cairn_ready && return 0
+    _log "cairn not ready at ${CAIRN_READY_URL} — polling every ${CAIRN_READY_POLL_S}s for up to ${CAIRN_READY_WAIT_S}s"
+    local _waited=0
+    while (( _waited < CAIRN_READY_WAIT_S )); do
+        sleep "${CAIRN_READY_POLL_S}"
+        _waited=$(( _waited + CAIRN_READY_POLL_S ))
+        if _cairn_ready; then
+            _log "cairn became ready after ${_waited}s"
+            return 0
+        fi
+    done
+    return 1
+}
+
+if ! _wait_for_cairn; then
+    _log "cairn still not ready after ${CAIRN_READY_WAIT_S}s — leaving inbox untouched, exiting 0"
     exit 0
 fi
 
