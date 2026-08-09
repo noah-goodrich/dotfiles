@@ -1,5 +1,9 @@
 # Work Machine Setup Guide
 
+> **Scope:** this doc covers only dotfiles identity/config sync (git email, Keychain-backed secrets,
+> layered config). The full machine setup/update runbook (borg, cairn, plugins, launchd agents) lives
+> at `~/dev/borg-collective/docs/work-machine-setup.md`.
+
 This guide brings a work machine into sync after dotfiles changes. Safe to run on an already-configured
 machine — nothing is destructive.
 
@@ -18,23 +22,6 @@ This dotfiles repo uses a layered config strategy:
 - **Plugins** (`~/dev/claude-plugins`, separate repo): Claude Code plugins, installed by `install.sh`.
 
 The work machine identity is `ngoodrich@ontra.ai`. Personal machine uses `goodrich.noah@gmail.com`.
-
----
-
-## Update to latest
-
-If you've already set up this machine and just need to sync to the latest versions of all
-components (dotfiles, cairn, and borg plugin):
-
-```bash
-# dotfiles + launchd agents (incl. dev-postgres auto-start)
-cd ~/.config/dotfiles && git pull && bash install.sh
-# cairn service (DB resilience)
-cd ~/dev/cairn && git pull && ./bin/cairn-up
-# borg plugin (cairn heartbeat + link callouts)
-cd ~/dev/claude-plugins && git pull && claude plugin install borg-collective@noah-local
-# then restart Claude Code so the rebuilt plugin loads
-```
 
 ---
 
