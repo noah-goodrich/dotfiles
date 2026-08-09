@@ -1,7 +1,7 @@
 # Work Machine Setup Guide
 
 > **Scope:** this doc covers only dotfiles identity/config sync (git email, Keychain-backed secrets,
-> layered config). The full machine setup/update runbook (borg, cairn, plugins, launchd agents) lives
+> layered config). The full machine setup/update runbook (borg, plugins, launchd agents) lives
 > at `~/dev/borg-collective/docs/work-machine-setup.md`.
 
 This guide brings a work machine into sync after dotfiles changes. Safe to run on an already-configured
@@ -191,13 +191,7 @@ the env var name in every case. On a fresh work machine, provision only the entr
 | `PORKBUN_API_KEY` | **skip** | Porkbun domain registrar (ingle, personal). |
 | `PORKBUN_SECRET_KEY` | **skip** | Porkbun domain registrar (ingle, personal). |
 
-### Cairn knowledge graph (optional)
+### Cairn knowledge graph (decommissioned)
 
-Cairn is the optional PostgreSQL + pgvector knowledge persistence layer used by borg. On the work
-machine, cairn runs without its LLM legs — debrief summarization is a no-op, but knowledge storage
-and vector search still work.
-
-| Secret | Work machine | Notes |
-|--------|--------------|-------|
-| `cairn-anthropic-key` (Keychain) | **skip** | Unset = cairn LLM legs disabled. Intended work-machine state. |
-| Cairn Postgres password | **provision** | Set via `POSTGRES_PASSWORD` in cairn's compose file. Work-specific value. |
+Cairn was decommissioned 2026-08-08. No cairn-related secrets need to be provisioned on a work
+machine. The corpus it held now lives in per-project `.borg/knowledge/*.md` markdown files.
