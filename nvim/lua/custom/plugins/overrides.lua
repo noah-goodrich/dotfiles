@@ -79,6 +79,28 @@ return {
       -- Space+z → zoom/maximize current window  (Space+= to equalise back)
       vim.keymap.set('n', '<Space>z', '<C-w>_<C-w>|', { desc = 'Zoom/maximize window' })
 
+      -- gp → open the GitHub PR/issue ref under the cursor in the browser.
+      -- Refs are self-addressing: `owner/repo#123` needs no URL in the file. Borg-generated docs
+      -- (chains.md, checkpoints, directives) use full refs precisely so this works from anywhere.
+      -- Bare `#123` falls back to `gh pr view --web` in the buffer's repo.
+      vim.keymap.set('n', 'gp', function()
+        local w = vim.fn.expand '<cWORD>'
+        local owner_repo, num = w:match '([%w%.%-_]+/[%w%.%-_]+)#(%d+)'
+        if owner_repo then
+          vim.ui.open('https://github.com/' .. owner_repo .. '/pull/' .. num)
+          return
+        end
+        num = w:match '#(%d+)'
+        if num then
+          vim.fn.jobstart({ 'gh', 'pr', 'view', num, '--web' }, {
+            detach = true,
+            cwd = vim.fn.expand '%:p:h',
+          })
+          return
+        end
+        vim.notify('no PR ref under cursor', vim.log.levels.WARN)
+      end, { desc = 'Open [P]R ref under cursor' })
+
       -- Buffer navigation
       vim.keymap.set('n', '<leader>bn', '<cmd>bnext<CR>',               { desc = '[B]uffer [N]ext' })
       vim.keymap.set('n', '<leader>bp', '<cmd>bprevious<CR>',           { desc = '[B]uffer [P]revious' })
