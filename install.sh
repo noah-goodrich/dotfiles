@@ -109,6 +109,36 @@ install_deps() {
         fi
     fi
 
+    # jq — required by merge_claude_settings (below) to merge settings.json
+    if ! command -v jq &>/dev/null; then
+        warn "jq not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install jq
+        else
+            sudo apt-get install -y jq
+        fi
+    fi
+
+    # GitHub CLI — required by git/config's credential helper and the `gp` alias
+    if ! command -v gh &>/dev/null; then
+        warn "gh not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install gh
+        else
+            sudo apt-get install -y gh
+        fi
+    fi
+
+    # pipx — required by the `pip` alias in .zshrc
+    if ! command -v pipx &>/dev/null; then
+        warn "pipx not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install pipx
+        else
+            sudo apt-get install -y pipx
+        fi
+    fi
+
     # Powerlevel10k
     if [ ! -d "$HOME/.config/zsh/powerlevel10k" ]; then
         info "Installing Powerlevel10k..."

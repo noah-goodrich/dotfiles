@@ -658,6 +658,8 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         -- You can add other tools here that you want Mason to install
+        -- conform.nvim's formatters_by_ft (below) requires this
+        'black', -- python formatter
       })
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
