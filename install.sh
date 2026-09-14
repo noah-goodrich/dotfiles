@@ -89,6 +89,26 @@ install_deps() {
         fi
     fi
 
+    # ripgrep — required by telescope.nvim for live_grep and grep_string
+    if ! command -v rg &>/dev/null; then
+        warn "ripgrep not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install ripgrep
+        else
+            sudo apt-get install -y ripgrep
+        fi
+    fi
+
+    # fd — required by telescope.nvim for fast file finding
+    if ! command -v fd &>/dev/null; then
+        warn "fd not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install fd
+        else
+            sudo apt-get install -y fd-find
+        fi
+    fi
+
     # Powerlevel10k
     if [ ! -d "$HOME/.config/zsh/powerlevel10k" ]; then
         info "Installing Powerlevel10k..."
