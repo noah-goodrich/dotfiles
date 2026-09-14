@@ -616,11 +616,6 @@ require('lazy').setup({
         -- Python — handles imports, type checking, go-to-definition for all Python files
         pyright = {},
 
-        -- SQL — basic completion and go-to-definition for SQL files
-        -- Note: sqls needs a project config (~/.config/sqls/config.yml) to connect to a DB.
-        -- Without it, you still get syntax awareness but not live query results.
-        sqls = {},
-
         stylua = {}, -- Used to format Lua code
 
         -- Special Lua Config, as recommended by neovim help docs
