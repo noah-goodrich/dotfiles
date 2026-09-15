@@ -1,5 +1,6 @@
 # Project Plan: dotfiles — Increment 1, Close the Mason/Formatter Seam
 *Established: 2026-09-14*
+*Shipped: 2026-09-15 — PR [#16](https://github.com/noah-goodrich/dotfiles/pull/16) merged to main*
 
 ## Objective
 
@@ -10,19 +11,19 @@ single explicit list of required binaries that reports missing tools loudly. Dep
 
 ## Acceptance Criteria
 
-- [ ] Python formatting uses `ruff`; `black` appears nowhere in the nvim config
+- [x] Python formatting uses `ruff`; `black` appears nowhere in the nvim config
   - Verify: `grep -rn "black" /Users/noah/.config/dotfiles/nvim/` returns nothing
-- [ ] Missing formatters fail loudly — `notify_on_error` is enabled
+- [x] Missing formatters fail loudly — `notify_on_error` is enabled
   - Verify: `grep -n "notify_on_error" /Users/noah/.config/dotfiles/nvim/init.lua` shows `= true`
-- [ ] `sqls` and `delve` are gone, and a fresh nvim launch adds no new Go-toolchain install failure
+- [x] `sqls` and `delve` are gone, and a fresh nvim launch adds no new Go-toolchain install failure
   - Verify: note the current line count of `~/.local/state/nvim/mason.log`, launch nvim once, then confirm no new
     `Could not find executable "go"` lines were appended
-- [ ] A custom health check declares every required external binary and reports each as OK or ERROR
+- [x] A custom health check declares every required external binary and reports each as OK or ERROR
   - Verify: `nvim --headless "+checkhealth user" +qa` — every required binary listed, missing ones reported via
     `vim.health.error()`, not silently skipped
-- [ ] `install.sh` provisions every binary the nvim config declares, including `ruff` and `sqlfluff`
+- [x] `install.sh` provisions every binary the nvim config declares, including `ruff` and `sqlfluff`
   - Verify: after `./install.sh`, `command -v ruff sqlfluff rg fd jq gh pipx` resolves all seven
-- [ ] Regression: nothing else breaks
+- [x] Regression: nothing else breaks
   - Verify: `shellcheck install.sh` shows no new warnings; `nvim --headless +qa` exits 0; existing symlinks in
     `$HOME` still resolve to the repo
 
@@ -62,3 +63,19 @@ formatting output differing from `black` on existing Python files.
   check is meaningless.
 - **Unrelated hazard, not part of this plan:** some machine-local tooling sits untracked in the working directory of
   this public repo. A single `git add -A` would publish it. Handled separately by gitignoring those paths.
+
+## Additional Work Shipped
+
+Beyond the six criteria, PR [#17](https://github.com/noah-goodrich/dotfiles/pull/17) resolved the hazard named in
+Risks above: three machine-local paths sitting untracked in this public repo are now gitignored, so a stray
+`git add -A` can no longer publish them.
+
+## Verification Record
+
+Criteria were verified on 2026-09-15, after `install.sh` was run for the first time since the merge:
+
+- `sqlfluff`, `rg`, and `fd` were absent until that run and were provisioned by it; all seven binaries now resolve.
+- `checkhealth user` reports 8 OK / 0 ERROR. `stylua` resolves via the Mason path, not the shell `PATH`.
+- `mason.log` held steady at 576 lines across a fresh launch; the last Go-toolchain failure is dated Sep 14 11:27:51,
+  before the fix merged.
+- Ship-definition smoke test passed: saving a `.py` file reformatted it via `ruff`.
