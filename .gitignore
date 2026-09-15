@@ -9,6 +9,9 @@ claude/dist/
 # Machine-local overrides (not shared across machines)
 zsh/local.zsh
 local/
+zsh/bin/ducky
+zsh/ducky.zsh
+claude/code/skills/ducky/
 # .borg/* (children, not the dir) so .borg/ itself stays traversable for the negation below —
 # a bare .borg/ blocks git from descending into it at all, which would break the carve-out.
 # knowledge/ is the cairn export and IS meant to sync across machines, unlike the rest of .borg/.
