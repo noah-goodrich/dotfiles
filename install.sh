@@ -89,6 +89,76 @@ install_deps() {
         fi
     fi
 
+    # ripgrep — required by telescope.nvim for live_grep and grep_string
+    if ! command -v rg &>/dev/null; then
+        warn "ripgrep not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install ripgrep
+        else
+            sudo apt-get install -y ripgrep
+        fi
+    fi
+
+    # fd — required by telescope.nvim for fast file finding
+    if ! command -v fd &>/dev/null; then
+        warn "fd not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install fd
+        else
+            sudo apt-get install -y fd-find
+        fi
+    fi
+
+    # jq — required by merge_claude_settings (below) to merge settings.json
+    if ! command -v jq &>/dev/null; then
+        warn "jq not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install jq
+        else
+            sudo apt-get install -y jq
+        fi
+    fi
+
+    # GitHub CLI — required by git/config's credential helper and the `gp` alias
+    if ! command -v gh &>/dev/null; then
+        warn "gh not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install gh
+        else
+            sudo apt-get install -y gh
+        fi
+    fi
+
+    # pipx — required by the `pip` alias in .zshrc
+    if ! command -v pipx &>/dev/null; then
+        warn "pipx not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install pipx
+        else
+            sudo apt-get install -y pipx
+        fi
+    fi
+
+    # ruff — required by conform.nvim as the python formatter (nvim/init.lua)
+    if ! command -v ruff &>/dev/null; then
+        warn "ruff not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install ruff
+        else
+            sudo apt-get install -y ruff
+        fi
+    fi
+
+    # sqlfluff — required by conform.nvim as the sql formatter (nvim/init.lua)
+    if ! command -v sqlfluff &>/dev/null; then
+        warn "sqlfluff not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install sqlfluff
+        else
+            sudo apt-get install -y sqlfluff
+        fi
+    fi
+
     # Powerlevel10k
     if [ ! -d "$HOME/.config/zsh/powerlevel10k" ]; then
         info "Installing Powerlevel10k..."

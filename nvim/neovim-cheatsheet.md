@@ -288,8 +288,8 @@ Your config auto-installs these via Mason:
 | Language | LSP Server | Formatter |
 |----------|-----------|-----------|
 | Lua | `lua_ls` | `stylua` |
-| Python | `pyright` | `black` |
-| SQL | `sqls` | `sqlfluff` |
+| Python | `pyright` | `ruff` |
+| SQL | — | `sqlfluff` |
 
 Useful LSP keymaps (from Kickstart defaults):
 
