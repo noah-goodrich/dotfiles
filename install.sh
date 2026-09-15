@@ -139,6 +139,26 @@ install_deps() {
         fi
     fi
 
+    # ruff — required by conform.nvim as the python formatter (nvim/init.lua)
+    if ! command -v ruff &>/dev/null; then
+        warn "ruff not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install ruff
+        else
+            sudo apt-get install -y ruff
+        fi
+    fi
+
+    # sqlfluff — required by conform.nvim as the sql formatter (nvim/init.lua)
+    if ! command -v sqlfluff &>/dev/null; then
+        warn "sqlfluff not found — installing..."
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install sqlfluff
+        else
+            sudo apt-get install -y sqlfluff
+        fi
+    fi
+
     # Powerlevel10k
     if [ ! -d "$HOME/.config/zsh/powerlevel10k" ]; then
         info "Installing Powerlevel10k..."

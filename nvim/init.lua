@@ -659,7 +659,7 @@ require('lazy').setup({
       vim.list_extend(ensure_installed, {
         -- You can add other tools here that you want Mason to install
         -- conform.nvim's formatters_by_ft (below) requires this
-        'black', -- python formatter
+        'ruff', -- python formatter
       })
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
@@ -686,7 +686,7 @@ require('lazy').setup({
     ---@module 'conform'
     ---@type conform.setupOpts
     opts = {
-      notify_on_error = false,
+      notify_on_error = true,
       format_on_save = function(bufnr)
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
@@ -703,7 +703,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        python = { 'black', stop_after_first = true },
+        python = { 'ruff_format', stop_after_first = true },
         sql = { 'sqlfluff' },
       },
     },
