@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  dev-postgres-autostart — makes sure the shared local Postgres dev container comes back on
+  its own after a Docker Desktop restart, crash, or a full container removal (e.g.
+  `docker system prune`), with no human running a recovery command.
+
+  Runs zsh/bin/dev-postgres-autostart, which waits (bounded) for the Docker daemon to be
+  reachable and then runs `docker compose -p devcontainer -f
+  devcontainer/docker-compose.postgres.yml up -d`. That command is idempotent — a no-op if
+  the container is already up and healthy — and `-p devcontainer` is what attaches the
+  EXISTING named data volume rather than creating a new empty one.
+
+  There is no reliable launchd WatchPaths signal for "the Docker daemon just came up", so this
+  agent fires at login (RunAtLoad) and thereafter on a periodic StartInterval; the script's own
+  daemon-reachability wait/retry makes each firing cheap and safe when Docker isn't running yet.
+
+  This file is a TEMPLATE, not a loadable plist. borg-collective's installer is the single launchd
+  installer: it renders every *.plist.tmpl found in ${XDG_CONFIG_HOME:-~/.config}/borg/extensions/launchd/
+  into ~/Library/LaunchAgents/<label>.plist and bootstraps it. This agent is OPTIONAL — only machines
+  that host the shared Postgres dev container should opt in:
+    ln -s ~/.config/dotfiles/zsh/launchd/dev-postgres-autostart.plist.tmpl ~/.config/borg/extensions/launchd/
+    {{HOME}}   -> $HOME
+    {{LABEL}}  -> <prefix>.dev-postgres-autostart, <prefix> read from ~/.config/launchd-prefix
+  Do not cp or launchctl bootstrap this file directly.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>{{LABEL}}</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{HOME}}/.config/dotfiles/zsh/bin/dev-postgres-autostart</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StartInterval</key>
+    <integer>300</integer>
+    <key>StandardOutPath</key>
+    <string>{{HOME}}/Library/Logs/dev-postgres-autostart.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{HOME}}/Library/Logs/dev-postgres-autostart.stderr.log</string>
+</dict>
+</plist>

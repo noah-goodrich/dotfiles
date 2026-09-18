@@ -29,8 +29,9 @@
 #
 # This script is idempotent: safe to run any number of times. It only ever moves a symlink and
 # refreshes one hard link — nothing destructive. It is also run automatically by the
-# com.stillpoint-labs.claude-tcc-heal launchd agent (zsh/launchd/) whenever versions/ or the
-# ~/.local/bin/claude launcher changes, so healing happens even with no shell open.
+# claude-tcc-heal launchd agent (zsh/launchd/claude-tcc-heal.plist.tmpl, rendered and loaded by
+# borg-collective's installer) whenever versions/ or the ~/.local/bin/claude launcher changes, so
+# healing happens even with no shell open.
 #
 # ONE-TIME MANUAL STEP (do this once per machine, after the first run):
 #   System Settings > Privacy & Security > Full Disk Access
@@ -89,11 +90,12 @@ Done. Two things to finish, ONCE, on this machine:
   1. System Settings > Privacy & Security > Full Disk Access
      -> add / enable:  $anchor
      (replaces any prior grant on $share/ClaudeCode.app — that bundle is no longer used)
-  2. Load the self-heal launchd agent so this runs automatically on future updates:
-       cp $HOME/.config/dotfiles/zsh/launchd/com.stillpoint-labs.claude-tcc-heal.plist \\
-          $HOME/Library/LaunchAgents/com.stillpoint-labs.claude-tcc-heal.plist
-       launchctl bootstrap gui/\$(id -u) \\
-          $HOME/Library/LaunchAgents/com.stillpoint-labs.claude-tcc-heal.plist
+  2. Opt this machine in to the self-heal launchd agent so this runs on future updates:
+       mkdir -p $HOME/.config/borg/extensions/launchd && \\
+       ln -s $HOME/.config/dotfiles/zsh/launchd/claude-tcc-heal.plist.tmpl \\
+             $HOME/.config/borg/extensions/launchd/
+     then run borg-collective's installer, which renders it to
+     ~/Library/LaunchAgents/<prefix>.claude-tcc-heal.plist (prefix from ~/.config/launchd-prefix).
 
 After this the grant sticks, the launcher can't go dangling, and the popup stops.
 EOF

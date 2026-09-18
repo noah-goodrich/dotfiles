@@ -415,39 +415,6 @@ EOF
 }
 
 # -----------------------------------------------------------------------------
-# Install launchd agents
-# Symlinks every managed plist in zsh/launchd/ into ~/Library/LaunchAgents and
-# (re)bootstraps it with launchctl. Safe to re-run: any prior instance is
-# booted out first (ignored if not loaded yet), then bootstrapped fresh.
-# -----------------------------------------------------------------------------
-install_launchd_agents() {
-    if [[ "$(uname)" != "Darwin" ]]; then
-        return 0
-    fi
-    if ! command -v launchctl &>/dev/null; then
-        return 0
-    fi
-
-    info "Installing launchd agents..."
-
-    local plist label dst
-    for plist in "$DOTFILES_DIR"/zsh/launchd/*.plist; do
-        [ -f "$plist" ] || continue
-        label="$(basename "$plist" .plist)"
-        dst="$HOME/Library/LaunchAgents/$label.plist"
-
-        link "$plist" "$dst"
-
-        launchctl bootout "gui/$(id -u)/$label" &>/dev/null || true
-        if launchctl bootstrap "gui/$(id -u)" "$dst" &>/dev/null; then
-            info "  loaded launchd agent: $label"
-        else
-            warn "  could not bootstrap launchd agent $label — check $dst"
-        fi
-    done
-}
-
-# -----------------------------------------------------------------------------
 # Reload zshrc in all open tmux panes
 # -----------------------------------------------------------------------------
 reload_all_panes() {
@@ -507,7 +474,6 @@ main() {
     link_dotfiles
     build_base_devcontainer
     install_claude_plugins
-    install_launchd_agents
     heal_ssh_agent_dir
     reload_all_panes
 
