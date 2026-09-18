@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  claude-tcc-heal — self-heals the Claude Code launcher (zsh/bin/claude-tcc-heal) whenever
+  Claude Code's updater touches its versions/ directory or the ~/.local/bin/claude launcher
+  goes dangling. See zsh/bin/claude-tcc-heal for the full root-cause writeup.
+
+  This file is a TEMPLATE, not a loadable plist. borg-collective's installer is the single launchd
+  installer: it renders every *.plist.tmpl found in ${XDG_CONFIG_HOME:-~/.config}/borg/extensions/launchd/
+  into ~/Library/LaunchAgents/<label>.plist and bootstraps it. Opt this machine in with
+    ln -s ~/.config/dotfiles/zsh/launchd/claude-tcc-heal.plist.tmpl ~/.config/borg/extensions/launchd/
+    {{HOME}}   -> $HOME
+    {{LABEL}}  -> <prefix>.claude-tcc-heal, <prefix> read from ~/.config/launchd-prefix
+  Do not cp or launchctl bootstrap this file directly.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>{{LABEL}}</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{HOME}}/.config/dotfiles/zsh/bin/claude-tcc-heal</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>WatchPaths</key>
+    <array>
+        <string>{{HOME}}/.local/share/claude/versions</string>
+        <string>{{HOME}}/.local/bin/claude</string>
+    </array>
+    <key>StandardOutPath</key>
+    <string>{{HOME}}/Library/Logs/claude-tcc-heal.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{HOME}}/Library/Logs/claude-tcc-heal.stderr.log</string>
+</dict>
+</plist>

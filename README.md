@@ -39,17 +39,32 @@ The `devcontainer.json` dotfiles integration will clone this repo and run
 
 ## Background services (launchd)
 
-`zsh/launchd/*.plist` holds macOS LaunchAgents that keep host-level state healthy without a human
-running a recovery command. `install.sh` symlinks each one into `~/Library/LaunchAgents/` and
-bootstraps it via `launchctl` (see `install_launchd_agents`), so a fresh install registers them
-automatically; re-running `install.sh` is safe and just reloads them.
+dotfiles is configuration only: it ships launchd agent **templates** in `zsh/launchd/*.plist.tmpl` but does
+not install them. borg-collective's installer is the single launchd installer. It renders every
+`*.plist.tmpl` it finds in `${XDG_CONFIG_HOME:-~/.config}/borg/extensions/launchd/` into
+`~/Library/LaunchAgents/<label>.plist`, substituting `{{HOME}}` and `{{LABEL}}`, and bootstraps it.
 
-| Agent | What it does |
-|-------|--------------|
-| `com.stillpoint-labs.claude-tcc-heal` | Re-anchors the Claude Code launcher so macOS TCC grants and the `claude` binary survive updater churn. |
-| `com.stillpoint-labs.dev-postgres-autostart` | Ensures the shared local Postgres dev container (`devcontainer/docker-compose.postgres.yml`) is running — recovers it even after a full removal (e.g. `docker system prune`), not just a restart. Runs at login and periodically; waits for the Docker daemon and is a no-op if the container is already up. |
+A machine opts in per agent by symlinking the template into that drop-in directory:
 
-Logs for each agent land in `~/Library/Logs/<label>.std{out,err}.log`.
+```sh
+mkdir -p ~/.config/borg/extensions/launchd \
+  && ln -s ~/.config/dotfiles/zsh/launchd/claude-tcc-heal.plist.tmpl ~/.config/borg/extensions/launchd/
+```
+
+The label becomes `<prefix>.<name>`, where `<prefix>` is the single line in `~/.config/launchd-prefix` and
+`<name>` is the template basename. The prefix is a per-machine setting and is never committed here.
+
+| Template | What it does |
+|----------|--------------|
+| `claude-tcc-heal` | Re-anchors the Claude Code launcher so macOS TCC grants survive updater churn. |
+| `dev-postgres-autostart` | Optional. Keeps the shared local Postgres dev container running. |
+
+`dev-postgres-autostart` runs at login and every 5 minutes against
+`devcontainer/docker-compose.postgres.yml`. It waits for the Docker daemon, is a no-op when the container
+is already up, and brings it back even after `docker system prune` (not just a restart). Skip it on
+machines that do not host that container.
+
+Logs for each agent land in `~/Library/Logs/<name>.std{out,err}.log`.
 
 ## Key bindings summary
 

@@ -10,8 +10,9 @@
 #   something runs `compose up` again.
 #
 #   This script is that something. It is meant to run on login and whenever
-#   the Docker daemon comes up (see the com.stillpoint-labs.dev-postgres-autostart
-#   launchd agent in zsh/launchd/), so the container comes back on its own
+#   the Docker daemon comes up (see zsh/launchd/dev-postgres-autostart.plist.tmpl — an
+#   OPTIONAL launchd agent, opted in per machine via ~/.config/borg/extensions/launchd/ and
+#   rendered by borg-collective's installer), so the container comes back on its own
 #   with no human running a recovery command.
 #
 # SAFETY
