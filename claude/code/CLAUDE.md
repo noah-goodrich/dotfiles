@@ -8,14 +8,20 @@
 - Chain commands with && or ; so I can copy-paste one block.
 
 ## Markdown / Doc Generation
-- Wrap all generated markdown at 120 characters. No line should exceed 120 characters unless it's a URL or code block that can't be broken.
+- Hard-wrap only where a line-oriented tool reads the text; never where a renderer or terminal reflows it.
+  - Never hard-wrap: PR descriptions, PR/issue/review comments, any `gh` body, release notes, chat replies, posts for
+    Slack/Jira/LinkedIn, and anything bound for pandoc or epub. Write one line per paragraph or bullet.
+  - Markdown files: do not hard-wrap new prose. When editing an existing hard-wrapped paragraph, match its wrap and do
+    not reflow neighbors. Never wrap tables, fenced code or URLs.
+  - Source code and its comments: the project's configured limit (ruff/pylint/black); 120 where none is configured.
+  - Git commit messages: subject <= 72 characters, body wrapped at 72.
 
 ## Code Style
 - Python: black formatting, type hints on public functions
 - SQL: uppercase keywords, lowercase identifiers, CTEs over subqueries
 - Shell: zsh, prefer functions over aliases for anything > 1 line
 - 4-space indentation everywhere except YAML/Lua (2-space)
-- Markdown/text: hard-wrap at 120 characters. No line may exceed 120 chars.
+- Markdown/text: no hard-wrap (see Markdown / Doc Generation).
 
 ## Environment
 - macOS, Apple Silicon (arm64)

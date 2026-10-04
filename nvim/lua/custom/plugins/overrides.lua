@@ -143,6 +143,26 @@ return {
         end,
       })
 
+      -- Prose soft-wraps (window-local); code keeps the global wrap=false.
+      -- Hard-wrap is for line-oriented tools only; commit messages wrap at 72.
+      vim.api.nvim_create_autocmd('FileType', {
+        group = ft_group,
+        pattern = { 'markdown', 'text', 'gitcommit' },
+        callback = function()
+          vim.opt_local.wrap = true
+          vim.opt_local.linebreak = true
+          vim.opt_local.breakindent = true
+        end,
+      })
+
+      vim.api.nvim_create_autocmd('FileType', {
+        group = ft_group,
+        pattern = { 'gitcommit' },
+        callback = function()
+          vim.opt_local.textwidth = 72
+        end,
+      })
+
       vim.api.nvim_create_autocmd('FileType', {
         group = ft_group,
         pattern = { 'yaml', 'lua' },
