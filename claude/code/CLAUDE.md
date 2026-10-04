@@ -12,7 +12,11 @@
   - Never hard-wrap: PR descriptions, PR/issue/review comments, any `gh` body, release notes, chat replies, posts for
     Slack/Jira/LinkedIn, and anything bound for pandoc or epub. Write one line per paragraph or bullet.
   - Markdown files: do not hard-wrap new prose. When editing an existing hard-wrapped paragraph, match its wrap and do
-    not reflow neighbors. Never wrap tables, fenced code or URLs.
+    not reflow neighbors. Never wrap URLs.
+  - Markdown FILES read in a terminal or editor: tables and fenced blocks (mocks, code, diagrams) cannot reflow, so
+    every table row and fenced line stays within 72 columns. Keep table cells to a few words and put longer text in
+    bullets below the table; if a table needs more width, it should be a list. (GitHub-rendered text wraps table cells
+    itself, so no table limit applies to PR bodies and comments.)
   - Source code and its comments: the project's configured limit (ruff/pylint/black); 120 where none is configured.
   - Git commit messages: subject <= 72 characters, body wrapped at 72.
 
