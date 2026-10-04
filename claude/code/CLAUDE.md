@@ -54,3 +54,6 @@ If a previous session was compacted, context is at @~/.claude/handovers/latest.m
 
 ## Cortex Code CLI
 @~/.config/dotfiles/claude/code/CORTEX_RULES.md
+
+## Borg-managed rules
+@~/.claude/borg-managed.md
