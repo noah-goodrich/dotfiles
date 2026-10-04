@@ -293,7 +293,7 @@ link_dotfiles() {
     # bind-mounted ~/.claude can't follow host-absolute symlink targets.
     # Explicit allowlist: only dotfiles-owned hooks. Borg hooks (bash-guard.sh,
     # notify.sh, ...) are owned by `borg setup`; never copy them from here.
-    local dotfiles_hooks=(post-tool-format.sh pre-compact.py session-log.sh)
+    local name dotfiles_hooks=(post-tool-format.sh pre-compact.py session-log.sh)
     for name in "${dotfiles_hooks[@]}"; do
         local hook="$DOTFILES_DIR/claude/code/hooks/$name"
         [ -f "$hook" ] || continue
