@@ -28,14 +28,14 @@
 - Markdown/text: no hard-wrap (see Markdown / Doc Generation).
 
 ## Shell Commands
-- Run plain commands. Allow rules are matched per subcommand of `|`, `&&`, `;` and `||`, so `cmd1 | cmd2` needs no `bash -c` wrapper.
-- Use `git -C /path` (or a `run-in /path cmd` helper) instead of `cd /path && cmd`.
-- Prefer the Read and Grep tools over `cat`, `grep` and `find`.
-- Leading environment assignment: use `env VAR=val cmd`.
-- Use `bash -c` only for genuine control flow (loops, conditionals) that cannot be a plain command.
-- If a command is denied by a safety check, restructure it as a plain command or use a tool; never respell, split or script it to get past the check.
+- Run plain commands. Single pipes, `;` chains and a leading `VAR=x` (as in `LC_ALL=C sort | uniq`) are matched per subcommand and need no `bash -c` wrapper. `&&` and `||` chains are not yet measured.
+- Use `git -C /path` (or a `run-in /path cmd` helper if installed) instead of `cd /path && cmd`.
+- Prefer the Read and Grep tools over `cat`, `grep` and `find` when available.
+- These plain shapes get prompted, or flatly denied in subagents: a loop using variables, nested `$(...)`, and a heredoc piped into an interpreter. Use the Read/Grep tools, separate plain calls or a named command instead. Use `bash -c` only for a lone loop or conditional that nothing else can express.
+- A script mixing a loop, `$(...)` or variables with brace or awk-dollar text fails both plain and wrapped: split it into separate plain calls.
+- If a command is denied by a safety check, restructure it into separate plain calls or use a tool. Never evade the check by respelling a word or obfuscating the target.
 - Genuine deletions use literal paths, never variable targets, so the check can judge them.
-- Put long data heredocs (code, docs) in a file with the Write tool, then run a short command on the file.
+- Put long data heredocs (code, docs) in a file with the Write tool, then run a short command on that file. Do not write throwaway executable scripts for logic a plain call can express.
 - Always use absolute paths, never `~`.
 
 ## Environment

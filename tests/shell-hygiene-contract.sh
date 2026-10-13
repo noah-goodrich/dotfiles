@@ -1,20 +1,47 @@
 #!/usr/bin/env bash
 # Contract for the shell-command guidance in claude/code rule files.
-# Fails on the old wrap-everything-in-bash--c rule, passes on the narrowed rule.
+# Usage: shell-hygiene-contract.sh [repo-root]
+# Optional: BORG_MANAGED_MD=/path/to/borg-managed.md also scans that file
+# (the retired wrap rule lives there; it is owned by another slice).
+# Self-test: the "absent" patterns must hit the old-rule fixture, so they
+# are proven non-vacuous; the "present" patterns are anchored to CLAUDE.md.
 set -u
 root="${1:-$(git -C "$(dirname "$0")" rev-parse --show-toplevel)}"
-files=("$root/claude/code/CLAUDE.md" "$root/claude/code/CORTEX_RULES.md")
+claude="$root/claude/code/CLAUDE.md"
+scan=("$claude" "$root/claude/code/CORTEX_RULES.md")
+[ -n "${BORG_MANAGED_MD:-}" ] && scan+=("$BORG_MANAGED_MD")
+fixture="$root/tests/fixtures/old-wrap-rule.md"
 fail=0
-check() { # desc, expected(0 present|1 absent), pattern
-    local desc="$1" want="$2" pat="$3" hit=1
-    grep -qiE -- "$pat" "${files[@]}" && hit=0
-    if [ "$hit" -ne "$want" ]; then echo "FAIL: $desc"; fail=1; else echo "ok: $desc"; fi
+
+absent() { # desc, pattern: must NOT match scanned files, MUST match fixture
+    local desc="$1" pat="$2"
+    if ! grep -qiE -- "$pat" "$fixture"; then
+        echo "FAIL (vacuous, misses old-rule fixture): $desc"; fail=1; return
+    fi
+    if grep -qiE -- "$pat" "${scan[@]}"; then
+        echo "FAIL: $desc"; fail=1
+    else
+        echo "ok: $desc"
+    fi
 }
-check "no table row mapping a pipe/env/&& chain to bash -c" 1 '\|.*`bash -c '
-check "no 'Use it for pipelines' prescription" 1 'use it for pipelines'
-check "no 'for pipelines and compound commands' wrap rule" 1 "bash -c '\.\.\.'\` for pipelines"
-check "states per-subcommand matching" 0 'matched per subcommand'
-check "states literal paths for deletions" 0 'literal paths'
-check "states genuine control flow for bash -c" 0 'genuine control flow'
-check "no respelled removal advice" 1 '\[r\]m|respell(ing)? (the|a) removal word to'
+absent_plain() { # desc, pattern: must NOT match scanned files
+    if grep -qiE -- "$2" "${scan[@]}"; then echo "FAIL: $1"; fail=1; else echo "ok: $1"; fi
+}
+present() { # desc, pattern: must match CLAUDE.md itself
+    if grep -qiE -- "$2" "$claude"; then echo "ok: $1"; else echo "FAIL: $1"; fail=1; fi
+}
+
+absent "no table row mapping a pipe/env/&& chain to bash -c" '\|.*`bash -c '
+absent "no 'Use it for pipelines' prescription" 'use it for pipelines'
+absent "no wrap-for-pipelines rule" "bash -c '\.\.\.'\` for pipelines"
+absent_plain "no env-wrapper advice" 'env VAR=val'
+absent_plain "no blanket never-split-or-script ban" 'never respell, split or script'
+absent_plain "no respelled removal advice" '\[r\]m|respell(ing)? (the|a) removal word to'
+
+present "states per-subcommand matching" 'matched per subcommand'
+present "states literal paths for deletions" 'literal paths'
+present "states bash -c only for a lone loop/conditional" 'only for a lone loop'
+present "warns on nested \$(...) / loop / heredoc plain shapes" 'nested `\$\(\.\.\.\)`'
+present "mixed scripts must be split" 'split it into separate plain calls'
+present "bans evasion, allows separate calls" 'obfuscating the target'
 exit "$fail"
