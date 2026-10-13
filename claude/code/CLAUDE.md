@@ -27,6 +27,17 @@
 - 4-space indentation everywhere except YAML/Lua (2-space)
 - Markdown/text: no hard-wrap (see Markdown / Doc Generation).
 
+## Shell Commands
+- Run plain commands. Allow rules are matched per subcommand of `|`, `&&`, `;` and `||`, so `cmd1 | cmd2` needs no `bash -c` wrapper.
+- Use `git -C /path` (or a `run-in /path cmd` helper) instead of `cd /path && cmd`.
+- Prefer the Read and Grep tools over `cat`, `grep` and `find`.
+- Leading environment assignment: use `env VAR=val cmd`.
+- Use `bash -c` only for genuine control flow (loops, conditionals) that cannot be a plain command.
+- If a command is denied by a safety check, restructure it as a plain command or use a tool; never respell, split or script it to get past the check.
+- Genuine deletions use literal paths, never variable targets, so the check can judge them.
+- Put long data heredocs (code, docs) in a file with the Write tool, then run a short command on the file.
+- Always use absolute paths, never `~`.
+
 ## Environment
 - macOS, Apple Silicon (arm64)
 - Terminal: Ghostty

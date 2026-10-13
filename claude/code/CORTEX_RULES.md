@@ -1,6 +1,6 @@
 # Cortex Code CLI Rules
 
-All Bash Tool Rules from CLAUDE.md apply equally in Cortex Code sessions. Additionally:
+The Shell Commands rules from CLAUDE.md (plain commands, tools over shell, `bash -c` only for genuine control flow, literal paths for deletions) apply equally in Cortex Code sessions. Additionally:
 
 ## Tool Preference Hierarchy
 When investigating Snowflake objects, prefer sources in this order:
