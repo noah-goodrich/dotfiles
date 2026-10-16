@@ -8,7 +8,7 @@
 set -u
 root="${1:-$(git -C "$(dirname "$0")" rev-parse --show-toplevel)}"
 claude="$root/claude/code/CLAUDE.md"
-scan=("$claude" "$root/claude/code/CORTEX_RULES.md")
+scan=("$claude" "$root/cortex/RULES.md")
 [ -n "${BORG_MANAGED_MD:-}" ] && scan+=("$BORG_MANAGED_MD")
 fixture="$root/tests/fixtures/old-wrap-rule.md"
 fail=0
@@ -27,8 +27,8 @@ absent() { # desc, pattern: must NOT match scanned files, MUST match fixture
 absent_plain() { # desc, pattern: must NOT match scanned files
     if grep -qiE -- "$2" "${scan[@]}"; then echo "FAIL: $1"; fail=1; else echo "ok: $1"; fi
 }
-present() { # desc, pattern: must match CLAUDE.md itself
-    if grep -qiE -- "$2" "$claude"; then echo "ok: $1"; else echo "FAIL: $1"; fail=1; fi
+present() { # desc, pattern: must match cortex/RULES.md (CLAUDE.md defers to borg-managed.md)
+    if grep -qiE -- "$2" "$root/cortex/RULES.md"; then echo "ok: $1"; else echo "FAIL: $1"; fail=1; fi
 }
 
 absent "no table row mapping a pipe/env/&& chain to bash -c" '\|.*`bash -c '

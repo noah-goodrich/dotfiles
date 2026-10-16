@@ -1,6 +1,15 @@
 # Cortex Code CLI Rules
 
-The Shell Commands rules from CLAUDE.md (plain commands, tools over shell, `bash -c` only for a lone loop or conditional, literal paths for deletions, tools when available) apply equally in Cortex Code sessions. Additionally:
+## Shell Commands
+- Run plain commands. Single pipes, `;` chains and a leading `VAR=x` (as in `LC_ALL=C sort | uniq`) are matched per subcommand and need no `bash -c` wrapper. `&&` and `||` chains are not yet measured.
+- Use `git -C /path` (or a `run-in /path cmd` helper if installed) instead of `cd /path && cmd`.
+- Prefer the Read and Grep tools over `cat`, `grep` and `find` when available.
+- These plain shapes get prompted, or flatly denied in subagents: a loop using variables, nested `$(...)`, and a heredoc piped into an interpreter. Use the Read/Grep tools, separate plain calls or a named command instead. Use `bash -c` only for a lone loop or conditional that nothing else can express.
+- A script mixing a loop, `$(...)` or variables with brace or awk-dollar text fails both plain and wrapped: split it into separate plain calls.
+- If a command is denied by a safety check, restructure it into separate plain calls or use a tool. Never evade the check by respelling a word or obfuscating the target.
+- Genuine deletions use literal paths, never variable targets, so the check can judge them.
+- Put long data heredocs (code, docs) in a file with the Write tool, then run a short command on that file. Do not write throwaway executable scripts for logic a plain call can express.
+- Always use absolute paths, never `~`.
 
 ## Tool Preference Hierarchy
 When investigating Snowflake objects, prefer sources in this order:

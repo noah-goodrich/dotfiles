@@ -285,6 +285,9 @@ link_dotfiles() {
     # be in the repo.)
     mkdir -p "$HOME/.claude/hooks"
     link "$DOTFILES_DIR/claude/code/CLAUDE.md"     "$HOME/.claude/CLAUDE.md"
+    # Cortex Code CLI — RULES.md in its config dir is a default instruction
+    # file name Cortex loads natively (it does not expand @imports).
+    link "$DOTFILES_DIR/cortex/RULES.md"           "$HOME/.snowflake/cortex/RULES.md"
 
     # settings.json: merge dotfiles base into existing file (preserves borg
     # hooks, plugins, etc. added by other installers). Never overwrite.
