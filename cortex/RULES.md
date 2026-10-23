@@ -11,6 +11,11 @@
 - Put long data heredocs (code, docs) in a file with the Write tool, then run a short command on that file. Do not write throwaway executable scripts for logic a plain call can express.
 - Always use absolute paths, never `~`.
 
+## Links
+- Write every PR, issue and Jira reference as a markdown link with the full URL, never bare: `[PR #461](https://github.com/owner/repo/pull/461)`, `[#449](https://github.com/owner/repo/issues/449)`. The terminal turns these into clickable links; a bare `#461` or `ABC-123` is not clickable. Do this in prose, lists and tables, but not inside fenced code blocks.
+- When a reference does not name its repository, take owner/repo from `git remote get-url origin` (check once per session).
+- Jira keys (`ABC-123`): run `printenv JIRA_URL` once per session. If it prints a site URL, write `[ABC-123](<JIRA_URL>/browse/ABC-123)`. If it prints nothing, leave the key plain; never guess a site.
+
 ## Tool Preference Hierarchy
 When investigating Snowflake objects, prefer sources in this order:
 1. **Local files first** — dbt YAML schemas (column descriptions, types, tests, FK relationships),
